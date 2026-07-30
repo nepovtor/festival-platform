@@ -1,16 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import type { FestivalFeature, ProgramContentItem, SiteContent } from "@/content/site-content";
+import type {
+  FestivalFeature,
+  ProgramContentItem,
+  SiteContent,
+} from "@/content/site-content";
 
 type SiteEditorProps = {
   initialContent: SiteContent;
 };
 
-const emptyFeature: FestivalFeature = { title: "Новый блок", description: "Описание" };
+const emptyFeature: FestivalFeature = {
+  title: "Новый блок",
+  description: "Описание",
+};
 const emptyProgramItem: ProgramContentItem = {
   time: "12:00",
-  title: "Новый пункт программы",
+  title: "Новое событие",
   description: "Описание события",
   venue: "Площадка",
   category: "Программа",
@@ -76,7 +83,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
         setMessage(result.message ?? "Не удалось сохранить изменения.");
         return;
       }
-      setMessage("Сохранено. Обновите главную страницу, чтобы увидеть изменения.");
+      setMessage("Изменения сохранены и уже появятся на сайте после обновления страницы.");
     } catch {
       setMessage("Не удалось связаться с сервером.");
     } finally {
@@ -89,72 +96,92 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
       <section className="editor-card">
         <div className="editor-card-heading">
           <div>
-            <p className="editor-kicker">Главное</p>
-            <h2>Фестиваль</h2>
+            <p className="editor-kicker">Первый экран и описание</p>
+            <h2>Основная информация</h2>
           </div>
-          <p>Эти данные отображаются в первом экране и блоке «О фестивале».</p>
+          <p>Нажмите на нужное значение и внесите правку.</p>
         </div>
-        <div className="editor-grid">
-          <label>
-            Название фестиваля
-            <input
-              value={content.festival.name}
-              onChange={(event) => updateFestival("name", event.target.value)}
-            />
-          </label>
-          <label>
-            Дата
-            <input
-              value={content.festival.date}
-              onChange={(event) => updateFestival("date", event.target.value)}
-            />
-          </label>
-          <label>
-            Время
-            <input
-              value={content.festival.time}
-              onChange={(event) => updateFestival("time", event.target.value)}
-            />
-          </label>
-          <label>
-            Место проведения
-            <input
-              value={content.festival.place}
-              onChange={(event) => updateFestival("place", event.target.value)}
-            />
-          </label>
-          <label className="editor-full">
-            Адрес или ориентир
-            <input
-              value={content.festival.address}
-              onChange={(event) => updateFestival("address", event.target.value)}
-            />
-          </label>
-          <label className="editor-full">
-            Короткое описание
-            <textarea
-              rows={3}
-              value={content.festival.description}
-              onChange={(event) =>
-                updateFestival("description", event.target.value)
-              }
-            />
-          </label>
-          <label className="editor-full">
-            Текст блока «О фестивале»
-            <textarea
-              rows={5}
-              value={content.festival.about}
-              onChange={(event) => updateFestival("about", event.target.value)}
-            />
-          </label>
+        <div className="editor-table-wrap">
+          <table className="editor-table">
+            <tbody>
+              <tr>
+                <th scope="row">Название фестиваля</th>
+                <td>
+                  <input
+                    value={content.festival.name}
+                    onChange={(event) => updateFestival("name", event.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Дата</th>
+                <td>
+                  <input
+                    value={content.festival.date}
+                    onChange={(event) => updateFestival("date", event.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Время</th>
+                <td>
+                  <input
+                    value={content.festival.time}
+                    onChange={(event) => updateFestival("time", event.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Место проведения</th>
+                <td>
+                  <input
+                    value={content.festival.place}
+                    onChange={(event) => updateFestival("place", event.target.value)}
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Адрес / ориентир</th>
+                <td>
+                  <input
+                    value={content.festival.address}
+                    onChange={(event) =>
+                      updateFestival("address", event.target.value)
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Короткое описание</th>
+                <td>
+                  <textarea
+                    rows={3}
+                    value={content.festival.description}
+                    onChange={(event) =>
+                      updateFestival("description", event.target.value)
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Текст «О фестивале»</th>
+                <td>
+                  <textarea
+                    rows={5}
+                    value={content.festival.about}
+                    onChange={(event) => updateFestival("about", event.target.value)}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
 
       <section className="editor-card">
         <div className="editor-card-heading">
           <div>
-            <p className="editor-kicker">Карточки</p>
+            <p className="editor-kicker">Карточки на главной</p>
             <h2>Блоки о фестивале</h2>
           </div>
           <button
@@ -174,49 +201,61 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
             + Добавить блок
           </button>
         </div>
-        <div className="editor-repeat-grid">
-          {content.festival.features.map((feature, index) => (
-            <fieldset className="editor-repeat-card" key={index}>
-              <legend>Блок {index + 1}</legend>
-              <label>
-                Заголовок
-                <input
-                  value={feature.title}
-                  onChange={(event) =>
-                    updateFeature(index, "title", event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Описание
-                <textarea
-                  rows={3}
-                  value={feature.description}
-                  onChange={(event) =>
-                    updateFeature(index, "description", event.target.value)
-                  }
-                />
-              </label>
-              <button
-                className="editor-remove"
-                type="button"
-                onClick={() =>
-                  setContent((current) => ({
-                    ...current,
-                    festival: {
-                      ...current.festival,
-                      features: current.festival.features.filter(
-                        (_, featureIndex) => featureIndex !== index,
-                      ),
-                    },
-                  }))
-                }
-                disabled={content.festival.features.length <= 1}
-              >
-                Удалить
-              </button>
-            </fieldset>
-          ))}
+        <div className="editor-table-wrap">
+          <table className="editor-table editor-repeat-table">
+            <thead>
+              <tr>
+                <th>№</th>
+                <th>Заголовок</th>
+                <th>Описание</th>
+                <th aria-label="Удалить" />
+              </tr>
+            </thead>
+            <tbody>
+              {content.festival.features.map((feature, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>
+                    <input
+                      value={feature.title}
+                      onChange={(event) =>
+                        updateFeature(index, "title", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <textarea
+                      rows={2}
+                      value={feature.description}
+                      onChange={(event) =>
+                        updateFeature(index, "description", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className="editor-remove"
+                      type="button"
+                      onClick={() =>
+                        setContent((current) => ({
+                          ...current,
+                          festival: {
+                            ...current.festival,
+                            features: current.festival.features.filter(
+                              (_, featureIndex) => featureIndex !== index,
+                            ),
+                          },
+                        }))
+                      }
+                      disabled={content.festival.features.length <= 1}
+                    >
+                      Удалить
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -224,7 +263,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
         <div className="editor-card-heading">
           <div>
             <p className="editor-kicker">Расписание</p>
-            <h2>Программа</h2>
+            <h2>Программа фестиваля</h2>
           </div>
           <button
             className="editor-add"
@@ -240,73 +279,83 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
             + Добавить событие
           </button>
         </div>
-        <div className="editor-program-list">
-          {content.program.map((item, index) => (
-            <fieldset className="editor-program-item" key={index}>
-              <legend>Событие {index + 1}</legend>
-              <label>
-                Время
-                <input
-                  value={item.time}
-                  onChange={(event) =>
-                    updateProgram(index, "time", event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Название
-                <input
-                  value={item.title}
-                  onChange={(event) =>
-                    updateProgram(index, "title", event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Категория
-                <input
-                  value={item.category}
-                  onChange={(event) =>
-                    updateProgram(index, "category", event.target.value)
-                  }
-                />
-              </label>
-              <label>
-                Площадка
-                <input
-                  value={item.venue}
-                  onChange={(event) =>
-                    updateProgram(index, "venue", event.target.value)
-                  }
-                />
-              </label>
-              <label className="editor-program-description">
-                Описание
-                <textarea
-                  rows={2}
-                  value={item.description}
-                  onChange={(event) =>
-                    updateProgram(index, "description", event.target.value)
-                  }
-                />
-              </label>
-              <button
-                className="editor-remove"
-                type="button"
-                onClick={() =>
-                  setContent((current) => ({
-                    ...current,
-                    program: current.program.filter(
-                      (_, itemIndex) => itemIndex !== index,
-                    ),
-                  }))
-                }
-                disabled={content.program.length <= 1}
-              >
-                Удалить
-              </button>
-            </fieldset>
-          ))}
+        <div className="editor-table-wrap">
+          <table className="editor-table editor-program-table">
+            <thead>
+              <tr>
+                <th>Время</th>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Площадка</th>
+                <th>Описание</th>
+                <th aria-label="Удалить" />
+              </tr>
+            </thead>
+            <tbody>
+              {content.program.map((item, index) => (
+                <tr key={index}>
+                  <td>
+                    <input
+                      value={item.time}
+                      onChange={(event) =>
+                        updateProgram(index, "time", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      value={item.title}
+                      onChange={(event) =>
+                        updateProgram(index, "title", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      value={item.category}
+                      onChange={(event) =>
+                        updateProgram(index, "category", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <input
+                      value={item.venue}
+                      onChange={(event) =>
+                        updateProgram(index, "venue", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <textarea
+                      rows={2}
+                      value={item.description}
+                      onChange={(event) =>
+                        updateProgram(index, "description", event.target.value)
+                      }
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className="editor-remove"
+                      type="button"
+                      onClick={() =>
+                        setContent((current) => ({
+                          ...current,
+                          program: current.program.filter(
+                            (_, itemIndex) => itemIndex !== index,
+                          ),
+                        }))
+                      }
+                      disabled={content.program.length <= 1}
+                    >
+                      Удалить
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 

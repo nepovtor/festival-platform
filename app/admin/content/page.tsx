@@ -17,8 +17,8 @@ export default async function ContentAdminPage() {
     <main className="admin-page content-admin-page">
       <header className="admin-header">
         <div>
-          <Link className="admin-back" href="/admin/registrations">
-            ← К регистрациям
+          <Link className="admin-back" href="/admin">
+            ← В админку
           </Link>
           <p className="eyebrow">Панель организатора</p>
           <h1>Содержимое сайта</h1>

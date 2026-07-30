@@ -17,18 +17,13 @@ export default async function RegistrationsAdminPage() {
     <main className="admin-page">
       <header className="admin-header">
         <div>
-          <Link className="admin-back" href="/">
-            ← На сайт фестиваля
+          <Link className="admin-back" href="/admin">
+            ← В админку
           </Link>
           <p className="eyebrow">Панель организатора</p>
           <h1>Регистрации</h1>
         </div>
-        <div className="admin-header-actions">
-          <Link className="admin-content-link" href="/admin/content">
-            Редактировать сайт →
-          </Link>
-          <p className="admin-access-note">Доступ ограничен паролем</p>
-        </div>
+        <p className="admin-access-note">Доступ ограничен паролем</p>
       </header>
       <AdminDashboard registrations={rows} />
     </main>
