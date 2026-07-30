@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { adminSessionCookie, isValidAdminSession } from "@/lib/admin-session";
 
-function unauthorizedResponse() {
-  return new NextResponse("Требуется пароль администратора", {
-    status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="Festival admin"' },
-  });
-}
-
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const username = process.env.ADMIN_USERNAME;
   const password = process.env.ADMIN_PASSWORD;
 
@@ -17,27 +11,26 @@ export function proxy(request: NextRequest) {
     });
   }
 
-  const authorization = request.headers.get("authorization");
-  if (!authorization?.startsWith("Basic ")) return unauthorizedResponse();
-
-  try {
-    const credentials = atob(authorization.slice("Basic ".length));
-    const separator = credentials.indexOf(":");
-    const suppliedUsername = credentials.slice(0, separator);
-    const suppliedPassword = credentials.slice(separator + 1);
-
-    if (
-      separator !== -1 &&
-      suppliedUsername === username &&
-      suppliedPassword === password
-    ) {
-      return NextResponse.next();
-    }
-  } catch {
-    // Invalid Basic authorization is handled as an unauthenticated request.
+  if (
+    request.nextUrl.pathname === "/admin/login" ||
+    request.nextUrl.pathname === "/api/admin/login"
+  ) {
+    return NextResponse.next();
   }
 
-  return unauthorizedResponse();
+  const isAuthenticated = await isValidAdminSession(
+    request.cookies.get(adminSessionCookie)?.value,
+  );
+  if (isAuthenticated) return NextResponse.next();
+
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const returnTo = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+  const loginUrl = new URL("/admin/login", request.url);
+  loginUrl.searchParams.set("return_to", returnTo);
+  return NextResponse.redirect(loginUrl);
 }
 
 export const config = {

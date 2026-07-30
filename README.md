@@ -76,6 +76,7 @@ EMAIL_REPLY_TO=hello@example.com
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ADMIN_USERNAME=organizer
 ADMIN_PASSWORD=change-this-to-a-long-unique-password
+ADMIN_SESSION_SECRET=replace-with-a-second-long-random-secret
 FESTIVAL_DATA_FILE=./data/registrations.json
 ```
 
@@ -100,9 +101,9 @@ npm run build
 docker compose up --build
 ```
 
-Сайт откроется на `http://localhost:3000`. Административная страница и
-CSV-экспорт используют HTTP Basic Auth с логином и паролем из `.env`. Данные
-регистраций сохраняются в Docker volume `festival-data`.
+Сайт откроется на `http://localhost:3000`. Для входа в админку используйте
+страницу `/admin/login` и данные из `.env`. Данные регистраций сохраняются
+в Docker volume `festival-data`.
 
 ## API
 
