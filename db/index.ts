@@ -36,7 +36,20 @@ export async function listRegistrations(): Promise<Registration[]> {
 
 export async function getSiteContent(): Promise<SiteContent> {
   const store = await readStore();
-  return structuredClone(store.siteContent ?? defaultSiteContent);
+  const content = store.siteContent;
+  if (!content) return structuredClone(defaultSiteContent);
+
+  return {
+    ...structuredClone(defaultSiteContent),
+    ...content,
+    festival: {
+      ...structuredClone(defaultSiteContent.festival),
+      ...content.festival,
+      features: content.festival?.features ?? defaultSiteContent.festival.features,
+    },
+    program: content.program ?? defaultSiteContent.program,
+    gallery: content.gallery ?? defaultSiteContent.gallery,
+  };
 }
 
 export async function saveSiteContent(content: SiteContent): Promise<void> {

@@ -1,4 +1,5 @@
 import { festival as defaultFestival } from "./festival";
+import { gallery as defaultGallery } from "./gallery";
 import { program as defaultProgram } from "./program";
 
 export type FestivalFeature = {
@@ -25,9 +26,19 @@ export type ProgramContentItem = {
   category: string;
 };
 
+export type GalleryImage = {
+  src: string;
+  alt: string;
+  className: string;
+  position: string;
+};
+
 export type SiteContent = {
   festival: FestivalContent;
   program: ProgramContentItem[];
+  heroImage: string;
+  programImage: string;
+  gallery: GalleryImage[];
 };
 
 export const defaultSiteContent: SiteContent = {
@@ -42,4 +53,7 @@ export const defaultSiteContent: SiteContent = {
     features: defaultFestival.features.map((feature) => ({ ...feature })),
   },
   program: defaultProgram.map((item) => ({ ...item })),
+  heroImage: "/images/hero-festival.webp",
+  programImage: "/images/evening-concert.webp",
+  gallery: defaultGallery.map((item) => ({ ...item })),
 };

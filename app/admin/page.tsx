@@ -29,6 +29,11 @@ export default function AdminHomePage() {
             <strong>Редактор сайта</strong>
             <small>Дата, тексты, карточки и программа фестиваля</small>
           </Link>
+          <Link className="admin-choice admin-choice-photo" href="/admin/photos">
+            <span>03</span>
+            <strong>Фотографии</strong>
+            <small>Обложка, программа и атмосфера фестиваля</small>
+          </Link>
         </nav>
         <Link className="admin-public-link" href="/">
           ← Вернуться на сайт

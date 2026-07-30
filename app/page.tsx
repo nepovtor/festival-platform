@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { RegistrationForm } from "@/components/registration-form";
-import { gallery } from "@/content/gallery";
 import { getSiteContent } from "@/db";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +24,8 @@ function PinIcon() {
 }
 
 export default async function Home() {
-  const { festival, program } = await getSiteContent();
+  const { festival, program, heroImage, programImage, gallery } =
+    await getSiteContent();
 
   return (
     <main className="festival-page" id="top">
@@ -57,7 +57,8 @@ export default async function Home() {
             fill
             priority
             sizes="(max-width: 700px) 100vw, 62vw"
-            src="/images/hero-festival.webp"
+            src={heroImage}
+            unoptimized
           />
         </div>
       </section>
@@ -109,7 +110,8 @@ export default async function Home() {
             alt="Вечерний концерт фестиваля под гирляндами"
             fill
             sizes="(max-width: 700px) 100vw, 48vw"
-            src="/images/evening-concert.webp"
+            src={programImage}
+            unoptimized
           />
         </figure>
       </section>
@@ -130,6 +132,7 @@ export default async function Home() {
                 sizes="(max-width: 700px) 50vw, 25vw"
                 src={item.src}
                 style={{ objectPosition: item.position }}
+                unoptimized
               />
             </figure>
           ))}

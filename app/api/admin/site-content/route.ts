@@ -13,6 +13,12 @@ const programItemSchema = z.object({
   venue: text.max(120),
   category: text.max(80),
 });
+const imageSchema = z.object({
+  src: text.max(260),
+  alt: text.max(180),
+  className: text.max(80),
+  position: text.max(80),
+});
 const siteContentSchema = z.object({
   festival: z.object({
     name: text.max(100),
@@ -25,6 +31,9 @@ const siteContentSchema = z.object({
     features: z.array(featureSchema).min(1).max(6),
   }),
   program: z.array(programItemSchema).min(1).max(12),
+  heroImage: text.max(260),
+  programImage: text.max(260),
+  gallery: z.array(imageSchema).length(6),
 });
 
 export async function GET() {

@@ -499,9 +499,9 @@ h1, h2 {
   font-size: 0.87rem;
   line-height: 1.6;
 }
-.admin-choice-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.admin-choice-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .admin-choice {
-  min-height: 220px;
+  min-height: 210px;
   padding: 21px;
   display: flex;
   flex-direction: column;
@@ -513,6 +513,8 @@ h1, h2 {
 .admin-choice:hover { background: rgba(255, 255, 255, 0.13); transform: translateY(-3px); }
 .admin-choice-accent { border-color: transparent; background: var(--accent); color: var(--ink); }
 .admin-choice-accent:hover { background: #ffda73; }
+.admin-choice-photo { background: #f4e6cf; color: var(--ink); border-color: transparent; }
+.admin-choice-photo:hover { background: #ead7b9; }
 .admin-choice > span {
   margin-bottom: auto;
   font-size: 0.67rem;
@@ -799,6 +801,72 @@ th { color: var(--muted); font-size: 0.62rem; letter-spacing: 0.08em; text-trans
 }
 .editor-save-bar p { margin: 0; color: var(--muted); font-size: 0.7rem; }
 
+.photo-manager { display: grid; gap: 14px; }
+.photo-manager-intro, .photo-manager-section {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+}
+.photo-manager-intro {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  background: #fff7e4;
+}
+.photo-manager-intro p { margin: 0; color: var(--muted); font-size: 0.72rem; line-height: 1.5; }
+.photo-manager-section h2 {
+  margin-bottom: 20px;
+  font-size: clamp(1.65rem, 3vw, 2.45rem);
+  line-height: 0.9;
+}
+.photo-priority-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 13px; }
+.photo-gallery-manager { display: grid; grid-template-columns: repeat(3, 1fr); gap: 13px; }
+.photo-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fffefa;
+}
+.photo-preview {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  overflow: hidden;
+  background: #f2e6d2;
+}
+.photo-preview img { object-fit: cover; }
+.photo-priority-grid .photo-preview { height: 280px; }
+.photo-card-body { padding: 13px; display: grid; gap: 10px; }
+.photo-card-body strong {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+.photo-card-body input:not([type="file"]) {
+  min-height: 38px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: white;
+  color: var(--ink);
+  font: 0.7rem var(--body);
+}
+.photo-upload {
+  min-height: 36px;
+  padding: 0 10px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid #d5b477;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: 0.65rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+.photo-upload:hover { background: #fff5db; }
+.photo-upload input { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; }
+
 @media (max-width: 700px) {
   .festival-page { width: calc(100% - 20px); padding-top: 10px; }
   .festival-card { margin-top: 8px; padding: 26px; border-radius: 12px; }
@@ -817,6 +885,8 @@ th { color: var(--muted); font-size: 0.62rem; letter-spacing: 0.08em; text-trans
   .site-footer { padding: 14px 3px 0; }
   .admin-header { padding: 24px; align-items: flex-start; gap: 20px; flex-direction: column; }
   .admin-header-actions { justify-items: start; }
+  .admin-choice-grid { grid-template-columns: 1fr; }
+  .admin-choice { min-height: 165px; }
   .admin-stats { grid-template-columns: repeat(2, 1fr); }
   .admin-toolbar { flex-direction: column; }
   .admin-actions { justify-content: space-between; }
@@ -824,6 +894,8 @@ th { color: var(--muted); font-size: 0.62rem; letter-spacing: 0.08em; text-trans
   .editor-grid, .editor-repeat-grid { grid-template-columns: 1fr; }
   .editor-program-item { grid-template-columns: 1fr 1fr; }
   .editor-program-description { grid-column: 1 / -1; }
+  .photo-manager-intro { flex-direction: column; }
+  .photo-priority-grid, .photo-gallery-manager { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 430px) {
@@ -846,6 +918,8 @@ th { color: var(--muted); font-size: 0.62rem; letter-spacing: 0.08em; text-trans
   .editor-program-item { grid-template-columns: 1fr; }
   .editor-program-description { grid-column: 1; }
   .editor-save-bar { align-items: stretch; flex-direction: column; }
+  .photo-priority-grid, .photo-gallery-manager { grid-template-columns: 1fr; }
+  .photo-preview, .photo-priority-grid .photo-preview { height: 220px; }
   .admin-login-card { padding: 28px 22px; }
 }
 
