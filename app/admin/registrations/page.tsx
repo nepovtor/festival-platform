@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminDashboard } from "@/components/admin-dashboard";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { listRegistrations } from "@/db";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +24,7 @@ export default async function RegistrationsAdminPage() {
           <p className="eyebrow">Панель организатора</p>
           <h1>Регистрации</h1>
         </div>
-        <p className="admin-access-note">Доступ ограничен паролем</p>
+        <AdminLogoutButton />
       </header>
       <AdminDashboard registrations={rows} />
     </main>

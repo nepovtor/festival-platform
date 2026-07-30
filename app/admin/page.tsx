@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 
 export const metadata: Metadata = {
   title: "Админка — Город говорит",
@@ -11,6 +12,7 @@ export default function AdminHomePage() {
     <main className="admin-home">
       <section className="admin-home-card">
         <p className="eyebrow">Панель организатора</p>
+        <AdminLogoutButton />
         <h1>Управление фестивалем</h1>
         <p>
           Выберите раздел: посмотрите текущие регистрации или обновите

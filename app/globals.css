@@ -437,6 +437,26 @@ h1, h2 {
   text-transform: uppercase;
 }
 
+.admin-logout-button {
+  padding: 9px 13px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 9px;
+  background: transparent;
+  color: white;
+  font: 800 0.66rem var(--body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.admin-logout-button:hover { border-color: var(--accent); color: var(--accent); }
+.admin-logout-button:disabled { cursor: wait; opacity: 0.6; }
+.admin-home-card > .admin-logout-button {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+}
+.admin-home-card { position: relative; }
+
 .admin-header-actions { display: grid; justify-items: end; gap: 11px; }
 .admin-content-link {
   padding: 10px 13px;

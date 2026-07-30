@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { AdminLogoutButton } from "@/components/admin-logout-button";
 import { SiteEditor } from "@/components/site-editor";
 import { getSiteContent } from "@/db";
 
@@ -23,7 +24,7 @@ export default async function ContentAdminPage() {
           <p className="eyebrow">Панель организатора</p>
           <h1>Содержимое сайта</h1>
         </div>
-        <p className="admin-access-note">Изменения сохраняются сразу</p>
+        <AdminLogoutButton />
       </header>
       <SiteEditor initialContent={content} />
     </main>
