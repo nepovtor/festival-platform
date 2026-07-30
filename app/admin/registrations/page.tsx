@@ -23,7 +23,12 @@ export default async function RegistrationsAdminPage() {
           <p className="eyebrow">Панель организатора</p>
           <h1>Регистрации</h1>
         </div>
-        <p className="admin-access-note">Доступ ограничен паролем</p>
+        <div className="admin-header-actions">
+          <Link className="admin-content-link" href="/admin/content">
+            Редактировать сайт →
+          </Link>
+          <p className="admin-access-note">Доступ ограничен паролем</p>
+        </div>
       </header>
       <AdminDashboard registrations={rows} />
     </main>

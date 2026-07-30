@@ -5,10 +5,13 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   consumeRegistrationRateLimit,
   createRegistration,
+  getSiteContent,
   listRegistrations,
   RegistrationAlreadyExistsError,
+  saveSiteContent,
   updateRegistrationEmailStatus,
 } from "@/db";
+import { defaultSiteContent } from "@/content/site-content";
 
 let dataDirectory = "";
 let previousDataFile: string | undefined;
@@ -68,5 +71,19 @@ describe("local registration store", () => {
     await expect(
       consumeRegistrationRateLimit("visitor", 100, 600, 2),
     ).resolves.toBe(false);
+  });
+
+  it("persists updated site content", async () => {
+    const content = await getSiteContent();
+    content.festival.name = "Новый фестиваль";
+
+    await saveSiteContent(content);
+
+    await expect(getSiteContent()).resolves.toEqual(
+      expect.objectContaining({
+        festival: expect.objectContaining({ name: "Новый фестиваль" }),
+      }),
+    );
+    expect(defaultSiteContent.festival.name).toBe("Город говорит");
   });
 });

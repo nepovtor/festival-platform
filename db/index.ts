@@ -1,10 +1,12 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { defaultSiteContent, type SiteContent } from "@/content/site-content";
 import type { EmailStatus, RateLimit, Registration } from "./schema";
 
 type Store = {
   registrations: Registration[];
   rateLimits: RateLimit[];
+  siteContent?: SiteContent;
 };
 
 type NewRegistration = Pick<
@@ -30,6 +32,17 @@ export async function listRegistrations(): Promise<Registration[]> {
   return [...store.registrations].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt),
   );
+}
+
+export async function getSiteContent(): Promise<SiteContent> {
+  const store = await readStore();
+  return structuredClone(store.siteContent ?? defaultSiteContent);
+}
+
+export async function saveSiteContent(content: SiteContent): Promise<void> {
+  await updateStore((store) => {
+    store.siteContent = structuredClone(content);
+  });
 }
 
 export async function createRegistration(

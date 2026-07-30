@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { RegistrationForm } from "@/components/registration-form";
-import { festival } from "@/content/festival";
 import { gallery } from "@/content/gallery";
-import { program } from "@/content/program";
+import { getSiteContent } from "@/db";
+
+export const dynamic = "force-dynamic";
 
 function CalendarIcon() {
   return (
@@ -23,7 +24,9 @@ function PinIcon() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const { festival, program } = await getSiteContent();
+
   return (
     <main className="festival-page" id="top">
       <section className="festival-card hero" aria-labelledby="hero-title">
