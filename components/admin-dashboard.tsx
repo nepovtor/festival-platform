@@ -85,8 +85,8 @@ export function AdminDashboard({ registrations }: AdminDashboardProps) {
                 Внимание
               </button>
             </div>
-            <a className="button admin-export" href="/api/admin/registrations.csv">
-              Скачать CSV
+            <a className="button admin-export" href="/api/admin/registrations.xlsx">
+              Скачать Excel
             </a>
           </div>
         </div>

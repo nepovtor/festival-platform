@@ -22,7 +22,7 @@ export default function AdminHomePage() {
           <Link className="admin-choice" href="/admin/registrations">
             <span>01</span>
             <strong>Статистика</strong>
-            <small>Регистрации, гости, письма и CSV-выгрузка</small>
+            <small>Регистрации, гости, письма и выгрузка Excel</small>
           </Link>
           <Link className="admin-choice admin-choice-accent" href="/admin/content">
             <span>02</span>
