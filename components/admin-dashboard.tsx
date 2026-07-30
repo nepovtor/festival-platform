@@ -15,15 +15,16 @@ const emailStatusLabels = {
 
 export function AdminDashboard({ registrations }: AdminDashboardProps) {
   const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<"all" | "attention">("all");
   const normalizedQuery = query.trim().toLowerCase();
   const visibleRows = useMemo(
     () =>
-      normalizedQuery
-        ? registrations.filter((row) =>
-            row.email.toLowerCase().includes(normalizedQuery),
-          )
-        : registrations,
-    [normalizedQuery, registrations],
+      registrations.filter(
+        (row) =>
+          (!normalizedQuery || row.email.toLowerCase().includes(normalizedQuery)) &&
+          (filter === "all" || row.emailStatus !== "SENT"),
+      ),
+    [filter, normalizedQuery, registrations],
   );
 
   const guestsTotal = registrations
@@ -31,12 +32,15 @@ export function AdminDashboard({ registrations }: AdminDashboardProps) {
     .reduce((sum, item) => sum + item.guestsCount, 0);
   const average =
     registrations.length > 0 ? guestsTotal / registrations.length : 0;
+  const attentionCount = registrations.filter(
+    (item) => item.emailStatus !== "SENT",
+  ).length;
 
   return (
     <>
       <section className="admin-stats" aria-label="Статистика регистраций">
         <article>
-          <span>Регистраций</span>
+          <span>Всего регистраций</span>
           <strong>{registrations.length}</strong>
         </article>
         <article>
@@ -47,6 +51,10 @@ export function AdminDashboard({ registrations }: AdminDashboardProps) {
           <span>Среднее в заявке</span>
           <strong>{average.toFixed(1)}</strong>
         </article>
+        <article className={attentionCount > 0 ? "needs-attention" : ""}>
+          <span>Письма требуют внимания</span>
+          <strong>{attentionCount}</strong>
+        </article>
       </section>
 
       <section className="admin-table-card">
@@ -55,14 +63,37 @@ export function AdminDashboard({ registrations }: AdminDashboardProps) {
             <span className="sr-only">Поиск по email</span>
             <input
               type="search"
-              placeholder="Поиск по email"
+              placeholder="Найти по email"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
-          <a className="button button-small" href="/api/admin/registrations.csv">
-            Скачать CSV
-          </a>
+          <div className="admin-actions">
+            <div className="admin-filters" aria-label="Фильтр регистраций">
+              <button
+                className={filter === "all" ? "is-active" : ""}
+                type="button"
+                onClick={() => setFilter("all")}
+              >
+                Все
+              </button>
+              <button
+                className={filter === "attention" ? "is-active" : ""}
+                type="button"
+                onClick={() => setFilter("attention")}
+              >
+                Внимание
+              </button>
+            </div>
+            <a className="button admin-export" href="/api/admin/registrations.csv">
+              Скачать CSV
+            </a>
+          </div>
+        </div>
+
+        <div className="admin-table-meta">
+          <span>Показано: {visibleRows.length}</span>
+          <span>Обновляется при открытии страницы</span>
         </div>
 
         <div className="table-scroll">
@@ -71,7 +102,7 @@ export function AdminDashboard({ registrations }: AdminDashboardProps) {
               <tr>
                 <th>Email</th>
                 <th>Посетители</th>
-                <th>Регистрация</th>
+                <th>Статус</th>
                 <th>Письмо</th>
                 <th>Дата</th>
               </tr>
@@ -83,7 +114,7 @@ export function AdminDashboard({ registrations }: AdminDashboardProps) {
                   <td>{row.guestsCount}</td>
                   <td>
                     <span className={`status ${row.status.toLowerCase()}`}>
-                      {row.status === "CONFIRMED" ? "Активна" : "Отменена"}
+                      {row.status === "CONFIRMED" ? "Подтверждена" : "Отменена"}
                     </span>
                   </td>
                   <td>
