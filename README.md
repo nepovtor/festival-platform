@@ -63,7 +63,7 @@ npm run dev
 ```
 
 Приложение будет доступно на `http://localhost:3000`. Данные сохраняются в
-`data/registrations.json`; путь можно изменить через `FESTIVAL_DATA_FILE`.
+`data/registrations.json`.
 
 ## Переменные окружения
 
@@ -77,7 +77,6 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ADMIN_USERNAME=organizer
 ADMIN_PASSWORD=change-this-to-a-long-unique-password
 ADMIN_SESSION_SECRET=replace-with-a-second-long-random-secret
-FESTIVAL_DATA_FILE=./data/registrations.json
 ```
 
 Без параметров Resend регистрация сохраняется, а статус письма отмечается как

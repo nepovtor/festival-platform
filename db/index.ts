@@ -1,6 +1,7 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname } from "node:path";
 import { defaultSiteContent, type SiteContent } from "@/content/site-content";
+import { getDataFilePath } from "@/lib/local-storage-paths";
 import type { EmailStatus, RateLimit, Registration } from "./schema";
 
 type Store = {
@@ -15,10 +16,6 @@ type NewRegistration = Pick<
 >;
 
 const emptyStore = (): Store => ({ registrations: [], rateLimits: [] });
-const dataFile = () =>
-  process.env.FESTIVAL_DATA_FILE ??
-  join(/* turbopackIgnore: true */ process.cwd(), "data", "registrations.json");
-
 let writeQueue: Promise<void> = Promise.resolve();
 
 export class RegistrationAlreadyExistsError extends Error {
@@ -125,7 +122,7 @@ export async function consumeRegistrationRateLimit(
 
 async function readStore(): Promise<Store> {
   try {
-    const value = JSON.parse(await readFile(dataFile(), "utf8")) as Store;
+    const value = JSON.parse(await readFile(getDataFilePath(), "utf8")) as Store;
     if (!Array.isArray(value.registrations) || !Array.isArray(value.rateLimits)) {
       throw new Error("invalid store shape");
     }
@@ -142,7 +139,7 @@ async function updateStore<T>(mutate: (store: Store) => T): Promise<T> {
   const operation = writeQueue.then(async () => {
     const store = await readStore();
     const result = mutate(store);
-    const destination = dataFile();
+    const destination = getDataFilePath();
     await mkdir(dirname(destination), { recursive: true });
 
     const temporary = `${destination}.tmp`;

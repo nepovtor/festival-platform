@@ -1,17 +1,12 @@
 import { readFile } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
+import { uploadDirectory } from "@/lib/local-storage-paths";
 
 const contentTypes = {
   jpg: "image/jpeg",
   png: "image/png",
   webp: "image/webp",
 } as const;
-
-function uploadDirectory() {
-  const dataFile =
-    process.env.FESTIVAL_DATA_FILE ?? join(process.cwd(), "data", "registrations.json");
-  return join(dirname(dataFile), "uploads");
-}
 
 export async function GET(
   _request: Request,
@@ -22,7 +17,7 @@ export async function GET(
   if (!match) return new Response("Not found", { status: 404 });
 
   try {
-    const file = await readFile(join(uploadDirectory(), filename));
+    const file = await readFile(join(uploadDirectory, filename));
     return new Response(file, {
       headers: {
         "Cache-Control": "public, max-age=31536000, immutable",

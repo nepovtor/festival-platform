@@ -1,7 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
-import { dirname, join } from "node:path";
+import { join } from "node:path";
 import { NextResponse } from "next/server";
+import { uploadDirectory } from "@/lib/local-storage-paths";
 
 const acceptedTypes = new Map([
   ["image/jpeg", "jpg"],
@@ -9,12 +10,6 @@ const acceptedTypes = new Map([
   ["image/webp", "webp"],
 ]);
 const maxFileSize = 6 * 1024 * 1024;
-
-function uploadDirectory() {
-  const dataFile =
-    process.env.FESTIVAL_DATA_FILE ?? join(process.cwd(), "data", "registrations.json");
-  return join(dirname(dataFile), "uploads");
-}
 
 export async function POST(request: Request) {
   const formData = await request.formData();
@@ -38,9 +33,9 @@ export async function POST(request: Request) {
   }
 
   const filename = `${randomUUID()}.${extension}`;
-  await mkdir(uploadDirectory(), { recursive: true });
+  await mkdir(uploadDirectory, { recursive: true });
   await writeFile(
-    join(uploadDirectory(), filename),
+    join(uploadDirectory, filename),
     Buffer.from(await file.arrayBuffer()),
   );
 
