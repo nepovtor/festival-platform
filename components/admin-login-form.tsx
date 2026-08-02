@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { adminFetch } from "@/lib/admin-csrf-client";
 
 type AdminLoginFormProps = {
   returnTo: string;
@@ -20,7 +21,7 @@ export function AdminLoginForm({ returnTo }: AdminLoginFormProps) {
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await adminFetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

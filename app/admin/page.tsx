@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
 
 export const metadata: Metadata = {
-  title: "Админка — Город говорит",
+  title: "Админка — Грибной фестиваль Lay’s",
   robots: { index: false, follow: false },
 };
 

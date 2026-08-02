@@ -40,13 +40,22 @@ describe("registrationSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects more than twenty visitors", () => {
+  it("rejects more than ten visitors", () => {
     const result = registrationSchema.safeParse({
       ...validRegistration,
-      guestsCount: 21,
+      guestsCount: 11,
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("accepts exactly ten visitors", () => {
+    const result = registrationSchema.safeParse({
+      ...validRegistration,
+      guestsCount: 10,
+    });
+
+    expect(result.success).toBe(true);
   });
 
   it("requires consent", () => {

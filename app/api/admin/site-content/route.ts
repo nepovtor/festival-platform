@@ -1,5 +1,8 @@
 import { z } from "zod";
 import { getSiteContent, saveSiteContent } from "@/db";
+import { adminMutationSecurityError } from "@/lib/admin-request-security";
+
+const maxRequestBytes = 128 * 1024;
 
 const text = z.string().trim().min(1, "Заполните поле").max(2_000);
 const featureSchema = z.object({
@@ -20,6 +23,7 @@ const imageSchema = z.object({
   position: text.max(80),
 });
 const siteContentSchema = z.object({
+  version: z.number().int().min(1),
   festival: z.object({
     name: text.max(100),
     date: text.max(100),
@@ -30,7 +34,7 @@ const siteContentSchema = z.object({
     about: text.max(2_000),
     features: z.array(featureSchema).min(1).max(6),
   }),
-  program: z.array(programItemSchema).min(1).max(12),
+  program: z.array(programItemSchema).min(1).max(24),
   heroImage: text.max(260),
   programImage: text.max(260),
   gallery: z.array(imageSchema).length(6),
@@ -41,9 +45,24 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
+  const securityError = adminMutationSecurityError(request);
+  if (securityError) return securityError;
+
+  const declaredLength = Number(request.headers.get("content-length"));
+  if (Number.isFinite(declaredLength) && declaredLength > maxRequestBytes) {
+    return Response.json({ message: "Слишком большой запрос" }, { status: 413 });
+  }
+
   let payload: unknown;
   try {
-    payload = await request.json();
+    const body = await request.text();
+    if (new TextEncoder().encode(body).byteLength > maxRequestBytes) {
+      return Response.json(
+        { message: "Слишком большой запрос" },
+        { status: 413 },
+      );
+    }
+    payload = JSON.parse(body);
   } catch {
     return Response.json({ message: "Некорректный формат данных" }, { status: 400 });
   }

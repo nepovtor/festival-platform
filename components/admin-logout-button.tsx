@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { adminFetch } from "@/lib/admin-csrf-client";
 
 export function AdminLogoutButton() {
   const router = useRouter();
@@ -10,7 +11,7 @@ export function AdminLogoutButton() {
   async function logout() {
     setIsLoggingOut(true);
     try {
-      await fetch("/api/admin/login", { method: "DELETE" });
+      await adminFetch("/api/admin/login", { method: "DELETE" });
     } finally {
       router.replace("/admin/login");
       router.refresh();

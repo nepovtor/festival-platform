@@ -37,7 +37,7 @@ function registrationCells(registration: Registration, index: number) {
 export async function GET() {
   const registrations = await listRegistrations();
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "Город говорит";
+  workbook.creator = "Грибной фестиваль Lay’s";
   workbook.created = new Date();
 
   const sheet = workbook.addWorksheet("Регистрации", {

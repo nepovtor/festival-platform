@@ -6,6 +6,7 @@ import type {
   ProgramContentItem,
   SiteContent,
 } from "@/content/site-content";
+import { adminFetch } from "@/lib/admin-csrf-client";
 
 type SiteEditorProps = {
   initialContent: SiteContent;
@@ -73,7 +74,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/site-content", {
+      const response = await adminFetch("/api/admin/site-content", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(content),
@@ -274,7 +275,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
                 program: [...current.program, { ...emptyProgramItem }],
               }))
             }
-            disabled={content.program.length >= 12}
+            disabled={content.program.length >= 24}
           >
             + Добавить событие
           </button>

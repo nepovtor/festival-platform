@@ -1,8 +1,14 @@
-export const adminSessionCookie = "festival_admin_session";
-const sessionLifetimeMs = 1000 * 60 * 60 * 24 * 7;
+import { adminCookieLifetimeSeconds } from "@/lib/security-constants";
+
+export const adminSessionCookie =
+  process.env.NODE_ENV === "production"
+    ? "__Host-festival_admin_session"
+    : "festival_admin_session";
+const sessionLifetimeMs = adminCookieLifetimeSeconds * 1_000;
 
 function sessionSecret() {
-  return process.env.ADMIN_SESSION_SECRET ?? process.env.ADMIN_PASSWORD ?? "";
+  const secret = process.env.ADMIN_SESSION_SECRET;
+  return secret && secret.length >= 32 ? secret : "";
 }
 
 function encodeBase64Url(bytes: Uint8Array) {
@@ -51,8 +57,21 @@ export async function createAdminSession() {
 export async function isValidAdminSession(value: string | undefined) {
   if (!value) return false;
 
-  const [expiresAt, signature] = value.split(".");
-  if (!expiresAt || !signature || Number(expiresAt) <= Date.now()) return false;
+  const parts = value.split(".");
+  if (parts.length !== 2) return false;
+
+  const [expiresAt, signature] = parts;
+  const expiresAtMs = Number(expiresAt);
+  const now = Date.now();
+  if (
+    !expiresAt ||
+    !signature ||
+    !Number.isFinite(expiresAtMs) ||
+    expiresAtMs <= now ||
+    expiresAtMs > now + sessionLifetimeMs + 60_000
+  ) {
+    return false;
+  }
 
   try {
     const key = await getKey();

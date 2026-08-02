@@ -4,7 +4,9 @@ import {
   RegistrationAlreadyExistsError,
   updateRegistrationEmailStatus,
 } from "@/db";
-import { sendRegistrationEmail } from "@/lib/email";
+import type { Registration } from "@/db/schema";
+import { deliverRegistrationConfirmation } from "@/lib/email";
+import { isSameOriginMutation } from "@/lib/admin-request-security";
 import { registrationSchema } from "@/lib/registration-schema";
 
 const WINDOW_SECONDS = 10 * 60;
@@ -50,6 +52,27 @@ async function consumeRateLimit(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    if (!isSameOriginMutation(request)) {
+      return errorResponse(
+        403,
+        "ORIGIN_NOT_ALLOWED",
+        "Запрос отклонён политикой безопасности",
+      );
+    }
+
+    if (
+      !request.headers
+        .get("content-type")
+        ?.toLowerCase()
+        .startsWith("application/json")
+    ) {
+      return errorResponse(
+        415,
+        "UNSUPPORTED_MEDIA_TYPE",
+        "Ожидается JSON-запрос",
+      );
+    }
+
     const bodyText = await request.text();
     if (bodyText.length > 8_192) {
       return errorResponse(413, "PAYLOAD_TOO_LARGE", "Слишком большой запрос");
@@ -96,8 +119,9 @@ export async function POST(request: Request) {
     const registrationId = crypto.randomUUID();
     const now = new Date().toISOString();
 
+    let registration: Registration;
     try {
-      await createRegistration({
+      registration = await createRegistration({
         id: registrationId,
         email: parsed.data.email,
         guestsCount: parsed.data.guestsCount,
@@ -114,15 +138,27 @@ export async function POST(request: Request) {
       throw error;
     }
 
-    const emailResult = await sendRegistrationEmail(
-      parsed.data.email,
-      parsed.data.guestsCount,
-    );
-
-    await updateRegistrationEmailStatus(
-      registrationId,
-      emailResult.ok ? "SENT" : "FAILED",
-    );
+    let emailDelivered = false;
+    try {
+      const emailDelivery = await deliverRegistrationConfirmation(registration);
+      emailDelivered = emailDelivery.result.ok;
+    } catch (error) {
+      console.error(
+        "Registration was saved, but confirmation processing failed",
+        error instanceof Error ? error.message : "Unknown error",
+      );
+      try {
+        await updateRegistrationEmailStatus(registrationId, "FAILED", {
+          attemptedAt: new Date().toISOString(),
+          errorMessage: "Confirmation processing failed",
+        });
+      } catch (statusError) {
+        console.error(
+          "Failed to persist confirmation error status",
+          statusError instanceof Error ? statusError.message : "Unknown error",
+        );
+      }
+    }
 
     console.info("Festival registration created");
 
@@ -130,8 +166,8 @@ export async function POST(request: Request) {
       {
         success: true,
         registrationId,
-        emailDelivered: emailResult.ok,
-        message: emailResult.ok
+        emailDelivered,
+        message: emailDelivered
           ? "Спасибо! Вы зарегистрированы. Подтверждение отправлено на email."
           : "Спасибо! Регистрация сохранена. Письмо с подтверждением будет отправлено дополнительно.",
       },

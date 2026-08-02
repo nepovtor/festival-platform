@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { AdminLoginForm } from "@/components/admin-login-form";
 
 export const metadata: Metadata = {
-  title: "Вход в админку — Город говорит",
+  title: "Вход в админку — Грибной фестиваль Lay’s",
   robots: { index: false, follow: false },
 };
 

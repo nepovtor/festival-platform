@@ -7,7 +7,7 @@ import { getSiteContent } from "@/db";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Содержимое сайта — Город говорит",
+  title: "Содержимое сайта — Грибной фестиваль Lay’s",
   robots: { index: false, follow: false },
 };
 

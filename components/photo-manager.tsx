@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { SiteContent } from "@/content/site-content";
+import { adminFetch } from "@/lib/admin-csrf-client";
 
 type PhotoManagerProps = {
   initialContent: SiteContent;
@@ -24,7 +25,7 @@ export function PhotoManager({ initialContent }: PhotoManagerProps) {
     try {
       const formData = new FormData();
       formData.append("image", file);
-      const response = await fetch("/api/admin/photos", {
+      const response = await adminFetch("/api/admin/photos", {
         method: "POST",
         body: formData,
       });
@@ -56,7 +57,7 @@ export function PhotoManager({ initialContent }: PhotoManagerProps) {
     setIsSaving(true);
     setMessage("");
     try {
-      const response = await fetch("/api/admin/site-content", {
+      const response = await adminFetch("/api/admin/site-content", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(content),

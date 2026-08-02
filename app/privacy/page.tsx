@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Политика обработки данных — Город говорит",
+  title: "Политика обработки данных — Грибной фестиваль Lay’s",
   robots: { index: false, follow: false },
 };
 
@@ -10,7 +10,7 @@ export default function PrivacyPage() {
   return (
     <main className="legal-page">
       <Link href="/">← На главную</Link>
-      <p className="eyebrow">Город говорит</p>
+      <p className="eyebrow">Грибной фестиваль Lay’s</p>
       <h1>Политика обработки персональных данных</h1>
       <p>
         Для предварительной регистрации обрабатываются адрес электронной почты,
@@ -22,8 +22,8 @@ export default function PrivacyPage() {
         Данные не публикуются и не передаются третьим лицам, за исключением
         почтового сервиса, необходимого для отправки подтверждения. Запрос на
         уточнение или удаление регистрации можно направить по адресу{" "}
-        <a href="mailto:hello@gorodfestival.example">
-          hello@gorodfestival.example
+        <a href="mailto:festival@lays.by">
+          festival@lays.by
         </a>
         .
       </p>

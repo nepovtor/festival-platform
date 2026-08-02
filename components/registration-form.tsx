@@ -42,6 +42,7 @@ export function RegistrationForm() {
       });
       const result = (await response.json()) as {
         message?: string;
+        emailDelivered?: boolean;
         fieldErrors?: Record<string, string[]>;
       };
 
@@ -64,9 +65,9 @@ export function RegistrationForm() {
 
       setSubmission({
         kind: "success",
-        message:
-          result.message ??
-          "Спасибо! Вы зарегистрированы. Подтверждение отправлено на email.",
+        message: result.emailDelivered
+          ? "Спасибо за регистрацию!\nМы отправили подтверждение на указанную электронную почту.\nДо встречи на «Грибном фестивале Lay’s»!\nНе забудьте подготовить тематический образ — грибные костюмы и аксессуары только приветствуются и смогут участвовать в грибном дефиле!"
+          : "Спасибо за регистрацию! Заявка сохранена. Письмо с подтверждением будет отправлено дополнительно.",
       });
       reset();
     } catch {
@@ -101,7 +102,7 @@ export function RegistrationForm() {
           aria-invalid={Boolean(errors.guestsCount)}
           {...register("guestsCount", { valueAsNumber: true })}
         >
-          {Array.from({ length: 20 }, (_, index) => index + 1).map((count) => (
+          {Array.from({ length: 10 }, (_, index) => index + 1).map((count) => (
             <option value={count} key={count}>
               {count}
             </option>
@@ -142,7 +143,7 @@ export function RegistrationForm() {
       )}
 
       <button className="button form-submit" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? "Отправляем…" : "Я приду на фестиваль"}
+        {isSubmitting ? "Отправляем…" : "Зарегистрироваться"}
         {!isSubmitting && <span aria-hidden="true">↗</span>}
       </button>
 

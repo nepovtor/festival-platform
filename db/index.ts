@@ -1,22 +1,177 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import {
+  chmodSync,
+  mkdirSync,
+  readFileSync,
+} from "node:fs";
 import { dirname } from "node:path";
+import Database from "better-sqlite3";
 import { defaultSiteContent, type SiteContent } from "@/content/site-content";
-import { getDataFilePath } from "@/lib/local-storage-paths";
-import type { EmailStatus, RateLimit, Registration } from "./schema";
-
-type Store = {
-  registrations: Registration[];
-  rateLimits: RateLimit[];
-  siteContent?: SiteContent;
-};
+import {
+  getDatabaseFilePath,
+  getDataFilePath,
+} from "@/lib/local-storage-paths";
+import type {
+  EmailCampaign,
+  EmailCampaignStatus,
+  EmailDelivery,
+  EmailDeliveryKind,
+  EmailStatus,
+  RateLimit,
+  Registration,
+  RegistrationStatus,
+} from "./schema";
 
 type NewRegistration = Pick<
   Registration,
   "id" | "email" | "guestsCount" | "consentAcceptedAt"
 >;
 
-const emptyStore = (): Store => ({ registrations: [], rateLimits: [] });
-let writeQueue: Promise<void> = Promise.resolve();
+type NewEmailCampaign = Pick<
+  EmailCampaign,
+  "id" | "subject" | "message" | "ctaLabel" | "ctaUrl" | "recipientCount"
+>;
+
+type RegistrationRow = {
+  id: string;
+  email: string;
+  guests_count: number;
+  status: RegistrationStatus;
+  consent_accepted_at: string;
+  email_status: EmailStatus;
+  email_sent_at: string | null;
+  email_attempt_count: number;
+  email_last_attempt_at: string | null;
+  email_last_error: string | null;
+  email_provider_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type EmailDeliveryRow = {
+  id: string;
+  registration_id: string;
+  campaign_id: string | null;
+  kind: EmailDeliveryKind;
+  recipient_email: string;
+  attempt_number: number;
+  status: EmailStatus;
+  provider_id: string | null;
+  error_message: string | null;
+  created_at: string;
+  sent_at: string | null;
+  updated_at: string;
+};
+
+type EmailCampaignRow = {
+  id: string;
+  subject: string;
+  message: string;
+  cta_label: string | null;
+  cta_url: string | null;
+  status: EmailCampaignStatus;
+  recipient_count: number;
+  sent_count: number;
+  failed_count: number;
+  created_at: string;
+  completed_at: string | null;
+};
+
+type LegacyStore = {
+  registrations: unknown[];
+  rateLimits: unknown[];
+  siteContent?: unknown;
+};
+
+const migrations = [
+  {
+    version: 1,
+    sql: `
+      CREATE TABLE registrations (
+        id TEXT PRIMARY KEY,
+        email TEXT NOT NULL COLLATE NOCASE UNIQUE,
+        guests_count INTEGER NOT NULL CHECK (guests_count BETWEEN 1 AND 10),
+        status TEXT NOT NULL CHECK (status IN ('CONFIRMED', 'CANCELLED')),
+        consent_accepted_at TEXT NOT NULL,
+        email_status TEXT NOT NULL CHECK (email_status IN ('PENDING', 'SENT', 'FAILED')),
+        email_sent_at TEXT,
+        email_attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (email_attempt_count >= 0),
+        email_last_attempt_at TEXT,
+        email_last_error TEXT,
+        email_provider_id TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX registrations_created_at_idx
+        ON registrations(created_at DESC);
+      CREATE INDEX registrations_status_idx
+        ON registrations(status);
+      CREATE INDEX registrations_email_status_idx
+        ON registrations(email_status);
+
+      CREATE TABLE registration_rate_limits (
+        fingerprint TEXT PRIMARY KEY,
+        window_start INTEGER NOT NULL,
+        request_count INTEGER NOT NULL CHECK (request_count >= 0)
+      );
+
+      CREATE TABLE site_content (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        content_json TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE TABLE email_campaigns (
+        id TEXT PRIMARY KEY,
+        subject TEXT NOT NULL,
+        message TEXT NOT NULL,
+        cta_label TEXT,
+        cta_url TEXT,
+        status TEXT NOT NULL CHECK (
+          status IN ('PENDING', 'SENDING', 'COMPLETED', 'PARTIAL', 'FAILED')
+        ),
+        recipient_count INTEGER NOT NULL DEFAULT 0 CHECK (recipient_count >= 0),
+        sent_count INTEGER NOT NULL DEFAULT 0 CHECK (sent_count >= 0),
+        failed_count INTEGER NOT NULL DEFAULT 0 CHECK (failed_count >= 0),
+        created_at TEXT NOT NULL,
+        completed_at TEXT
+      );
+
+      CREATE TABLE email_deliveries (
+        id TEXT PRIMARY KEY,
+        registration_id TEXT NOT NULL REFERENCES registrations(id) ON DELETE CASCADE,
+        campaign_id TEXT REFERENCES email_campaigns(id) ON DELETE SET NULL,
+        kind TEXT NOT NULL CHECK (kind IN ('CONFIRMATION', 'BROADCAST')),
+        recipient_email TEXT NOT NULL,
+        attempt_number INTEGER NOT NULL CHECK (attempt_number >= 1),
+        status TEXT NOT NULL CHECK (status IN ('PENDING', 'SENT', 'FAILED')),
+        provider_id TEXT,
+        error_message TEXT,
+        created_at TEXT NOT NULL,
+        sent_at TEXT,
+        updated_at TEXT NOT NULL
+      );
+
+      CREATE INDEX email_deliveries_registration_idx
+        ON email_deliveries(registration_id, created_at DESC);
+      CREATE INDEX email_deliveries_campaign_idx
+        ON email_deliveries(campaign_id, created_at DESC);
+
+      CREATE TABLE legacy_imports (
+        source_path TEXT PRIMARY KEY,
+        source_sha256 TEXT NOT NULL,
+        registrations_imported INTEGER NOT NULL,
+        rate_limits_imported INTEGER NOT NULL,
+        site_content_imported INTEGER NOT NULL,
+        imported_at TEXT NOT NULL
+      );
+    `,
+  },
+] as const;
+
+let database: Database.Database | null = null;
+let openedDatabasePath: string | null = null;
 
 export class RegistrationAlreadyExistsError extends Error {
   constructor() {
@@ -24,25 +179,408 @@ export class RegistrationAlreadyExistsError extends Error {
   }
 }
 
-export async function listRegistrations(): Promise<Registration[]> {
-  const store = await readStore();
-  return [...store.registrations].sort((a, b) =>
-    b.createdAt.localeCompare(a.createdAt),
+export class RegistrationNotFoundError extends Error {
+  constructor() {
+    super("Registration not found");
+  }
+}
+
+export class EmailCampaignNotFoundError extends Error {
+  constructor() {
+    super("Email campaign not found");
+  }
+}
+
+function getDatabase(): Database.Database {
+  const databasePath = getDatabaseFilePath();
+  if (database && openedDatabasePath === databasePath && database.open) {
+    return database;
+  }
+
+  if (database?.open) database.close();
+
+  const databaseDirectory = dirname(databasePath);
+  mkdirSync(databaseDirectory, { recursive: true, mode: 0o700 });
+  chmodSync(databaseDirectory, 0o700);
+  database = new Database(databasePath);
+  openedDatabasePath = databasePath;
+  chmodSync(databasePath, 0o600);
+
+  database.pragma("foreign_keys = ON");
+  database.pragma("journal_mode = WAL");
+  database.pragma("synchronous = NORMAL");
+  database.pragma("busy_timeout = 5000");
+
+  applyMigrations(database);
+  importLegacyStore(database);
+  return database;
+}
+
+function applyMigrations(connection: Database.Database) {
+  connection.exec(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      version INTEGER PRIMARY KEY,
+      applied_at TEXT NOT NULL
+    );
+  `);
+
+  const applied = new Set(
+    (
+      connection
+        .prepare("SELECT version FROM schema_migrations")
+        .all() as Array<{ version: number }>
+    ).map((row) => row.version),
   );
+
+  for (const migration of migrations) {
+    if (applied.has(migration.version)) continue;
+
+    connection.transaction(() => {
+      connection.exec(migration.sql);
+      connection
+        .prepare(
+          "INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?)",
+        )
+        .run(migration.version, new Date().toISOString());
+    })();
+  }
+}
+
+function importLegacyStore(connection: Database.Database) {
+  const sourcePath = getDataFilePath();
+  const alreadyImported = connection
+    .prepare("SELECT 1 FROM legacy_imports WHERE source_path = ?")
+    .get(sourcePath);
+  if (alreadyImported) return;
+
+  let source: string;
+  try {
+    source = readFileSync(sourcePath, "utf8");
+    chmodSync(sourcePath, 0o600);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return;
+    throw new Error("Не удалось прочитать legacy-хранилище регистраций", {
+      cause: error,
+    });
+  }
+
+  let parsed: LegacyStore;
+  try {
+    parsed = JSON.parse(source) as LegacyStore;
+  } catch (error) {
+    throw new Error("Legacy-хранилище регистраций содержит некорректный JSON", {
+      cause: error,
+    });
+  }
+
+  if (!Array.isArray(parsed.registrations) || !Array.isArray(parsed.rateLimits)) {
+    throw new Error("Legacy-хранилище регистраций имеет некорректную структуру");
+  }
+
+  const sourceSha256 = createHash("sha256").update(source).digest("hex");
+  const importedAt = new Date().toISOString();
+  const insertRegistration = connection.prepare(`
+    INSERT OR IGNORE INTO registrations (
+      id, email, guests_count, status, consent_accepted_at, email_status,
+      email_sent_at, email_attempt_count, email_last_attempt_at,
+      email_last_error, email_provider_id, created_at, updated_at
+    ) VALUES (
+      @id, @email, @guestsCount, @status, @consentAcceptedAt, @emailStatus,
+      @emailSentAt, @emailAttemptCount, @emailLastAttemptAt,
+      @emailLastError, NULL, @createdAt, @updatedAt
+    )
+  `);
+  const insertLegacyDelivery = connection.prepare(`
+    INSERT OR IGNORE INTO email_deliveries (
+      id, registration_id, campaign_id, kind, recipient_email, attempt_number,
+      status, provider_id, error_message, created_at, sent_at, updated_at
+    ) VALUES (
+      @id, @registrationId, NULL, 'CONFIRMATION', @recipientEmail, 1,
+      @status, NULL, @errorMessage, @createdAt, @sentAt, @updatedAt
+    )
+  `);
+  const insertRateLimit = connection.prepare(`
+    INSERT OR IGNORE INTO registration_rate_limits (
+      fingerprint, window_start, request_count
+    ) VALUES (@fingerprint, @windowStart, @requestCount)
+  `);
+
+  const result = connection.transaction(() => {
+    let registrationsImported = 0;
+    let rateLimitsImported = 0;
+
+    for (const value of parsed.registrations) {
+      const legacy = parseLegacyRegistration(value);
+      const emailAttemptCount = legacy.emailStatus === "PENDING" ? 0 : 1;
+      const emailLastAttemptAt =
+        emailAttemptCount > 0
+          ? (legacy.emailSentAt ?? legacy.updatedAt ?? legacy.createdAt)
+          : null;
+      const emailLastError =
+        legacy.emailStatus === "FAILED"
+          ? "Ошибка отправки импортирована из legacy-хранилища"
+          : null;
+      const info = insertRegistration.run({
+        ...legacy,
+        emailAttemptCount,
+        emailLastAttemptAt,
+        emailLastError,
+      });
+      if (info.changes !== 1) {
+        const existing = connection
+          .prepare(`
+            SELECT id, email, email_attempt_count
+            FROM registrations
+            WHERE id = ? OR email = ? COLLATE NOCASE
+          `)
+          .get(legacy.id, legacy.email) as
+          | { id: string; email: string; email_attempt_count: number }
+          | undefined;
+        if (
+          !existing ||
+          existing.id !== legacy.id ||
+          existing.email.toLowerCase() !== legacy.email.toLowerCase()
+        ) {
+          throw new Error(
+            "Legacy registration conflicts with an existing SQLite registration",
+          );
+        }
+
+        if (existing.email_attempt_count === 0 && emailAttemptCount > 0) {
+          connection
+            .prepare(`
+              UPDATE registrations SET
+                email_status = ?, email_sent_at = ?, email_attempt_count = ?,
+                email_last_attempt_at = ?, email_last_error = ?, updated_at = ?
+              WHERE id = ?
+            `)
+            .run(
+              legacy.emailStatus,
+              legacy.emailSentAt,
+              emailAttemptCount,
+              emailLastAttemptAt,
+              emailLastError,
+              legacy.updatedAt,
+              legacy.id,
+            );
+        }
+      }
+
+      registrationsImported += 1;
+      if (emailAttemptCount > 0) {
+        insertLegacyDelivery.run({
+          id: `legacy-${legacy.id}`,
+          registrationId: legacy.id,
+          recipientEmail: legacy.email,
+          status: legacy.emailStatus,
+          errorMessage: emailLastError,
+          createdAt: emailLastAttemptAt,
+          sentAt:
+            legacy.emailStatus === "SENT"
+              ? (legacy.emailSentAt ?? emailLastAttemptAt)
+              : null,
+          updatedAt: legacy.updatedAt,
+        });
+      }
+    }
+
+    for (const value of parsed.rateLimits) {
+      const rateLimit = parseLegacyRateLimit(value);
+      rateLimitsImported += insertRateLimit.run(rateLimit).changes;
+    }
+
+    let siteContentImported = 0;
+    if (parsed.siteContent !== undefined) {
+      siteContentImported = connection
+        .prepare(`
+          INSERT OR IGNORE INTO site_content (id, content_json, updated_at)
+          VALUES (1, ?, ?)
+        `)
+        .run(JSON.stringify(parsed.siteContent), importedAt).changes;
+    }
+
+    connection
+      .prepare(`
+        INSERT INTO legacy_imports (
+          source_path, source_sha256, registrations_imported,
+          rate_limits_imported, site_content_imported, imported_at
+        ) VALUES (?, ?, ?, ?, ?, ?)
+      `)
+      .run(
+        sourcePath,
+        sourceSha256,
+        registrationsImported,
+        rateLimitsImported,
+        siteContentImported,
+        importedAt,
+      );
+
+    return { registrationsImported, rateLimitsImported, siteContentImported };
+  })();
+
+  console.info("Legacy festival data imported into SQLite", result);
+}
+
+function parseLegacyRegistration(value: unknown) {
+  if (!value || typeof value !== "object") {
+    throw new Error("Legacy registration has an invalid shape");
+  }
+  const item = value as Record<string, unknown>;
+  const status = item.status;
+  const emailStatus = item.emailStatus;
+  const guestsCount = item.guestsCount;
+
+  if (
+    typeof item.id !== "string" ||
+    typeof item.email !== "string" ||
+    !Number.isInteger(guestsCount) ||
+    (guestsCount as number) < 1 ||
+    (guestsCount as number) > 10 ||
+    (status !== "CONFIRMED" && status !== "CANCELLED") ||
+    (emailStatus !== "PENDING" &&
+      emailStatus !== "SENT" &&
+      emailStatus !== "FAILED") ||
+    typeof item.consentAcceptedAt !== "string" ||
+    typeof item.createdAt !== "string" ||
+    typeof item.updatedAt !== "string" ||
+    (item.emailSentAt !== null && typeof item.emailSentAt !== "string")
+  ) {
+    throw new Error("Legacy registration contains invalid values");
+  }
+
+  return {
+    id: item.id,
+    email: item.email.trim().toLowerCase(),
+    guestsCount: guestsCount as number,
+    status,
+    consentAcceptedAt: item.consentAcceptedAt,
+    emailStatus,
+    emailSentAt: item.emailSentAt as string | null,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  };
+}
+
+function parseLegacyRateLimit(value: unknown): RateLimit {
+  if (!value || typeof value !== "object") {
+    throw new Error("Legacy rate limit has an invalid shape");
+  }
+  const item = value as Record<string, unknown>;
+  if (
+    typeof item.fingerprint !== "string" ||
+    !Number.isInteger(item.windowStart) ||
+    !Number.isInteger(item.requestCount)
+  ) {
+    throw new Error("Legacy rate limit contains invalid values");
+  }
+  return {
+    fingerprint: item.fingerprint,
+    windowStart: item.windowStart as number,
+    requestCount: item.requestCount as number,
+  };
+}
+
+function registrationFromRow(row: RegistrationRow): Registration {
+  return {
+    id: row.id,
+    email: row.email,
+    guestsCount: row.guests_count,
+    status: row.status,
+    consentAcceptedAt: row.consent_accepted_at,
+    emailStatus: row.email_status,
+    emailSentAt: row.email_sent_at,
+    emailAttemptCount: row.email_attempt_count,
+    emailLastAttemptAt: row.email_last_attempt_at,
+    emailLastError: row.email_last_error,
+    emailProviderId: row.email_provider_id,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function deliveryFromRow(row: EmailDeliveryRow): EmailDelivery {
+  return {
+    id: row.id,
+    registrationId: row.registration_id,
+    campaignId: row.campaign_id,
+    kind: row.kind,
+    recipientEmail: row.recipient_email,
+    attemptNumber: row.attempt_number,
+    status: row.status,
+    providerId: row.provider_id,
+    errorMessage: row.error_message,
+    createdAt: row.created_at,
+    sentAt: row.sent_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function campaignFromRow(row: EmailCampaignRow): EmailCampaign {
+  return {
+    id: row.id,
+    subject: row.subject,
+    message: row.message,
+    ctaLabel: row.cta_label,
+    ctaUrl: row.cta_url,
+    status: row.status,
+    recipientCount: row.recipient_count,
+    sentCount: row.sent_count,
+    failedCount: row.failed_count,
+    createdAt: row.created_at,
+    completedAt: row.completed_at,
+  };
+}
+
+const selectRegistrationSql = `
+  SELECT id, email, guests_count, status, consent_accepted_at, email_status,
+    email_sent_at, email_attempt_count, email_last_attempt_at,
+    email_last_error, email_provider_id, created_at, updated_at
+  FROM registrations
+`;
+
+export async function listRegistrations(): Promise<Registration[]> {
+  const rows = getDatabase()
+    .prepare(`${selectRegistrationSql} ORDER BY created_at DESC`)
+    .all() as RegistrationRow[];
+  return rows.map(registrationFromRow);
+}
+
+export async function listConfirmedRegistrations(): Promise<Registration[]> {
+  const rows = getDatabase()
+    .prepare(
+      `${selectRegistrationSql} WHERE status = 'CONFIRMED' ORDER BY created_at ASC`,
+    )
+    .all() as RegistrationRow[];
+  return rows.map(registrationFromRow);
+}
+
+export async function getRegistration(
+  id: string,
+): Promise<Registration | null> {
+  const row = getDatabase()
+    .prepare(`${selectRegistrationSql} WHERE id = ?`)
+    .get(id) as RegistrationRow | undefined;
+  return row ? registrationFromRow(row) : null;
 }
 
 export async function getSiteContent(): Promise<SiteContent> {
-  const store = await readStore();
-  const content = store.siteContent;
-  if (!content) return structuredClone(defaultSiteContent);
+  const row = getDatabase()
+    .prepare("SELECT content_json FROM site_content WHERE id = 1")
+    .get() as { content_json: string } | undefined;
+  if (!row) return structuredClone(defaultSiteContent);
 
+  const content = JSON.parse(row.content_json) as Partial<SiteContent>;
+  if (content.version !== defaultSiteContent.version) {
+    return structuredClone(defaultSiteContent);
+  }
   return {
     ...structuredClone(defaultSiteContent),
     ...content,
     festival: {
       ...structuredClone(defaultSiteContent.festival),
       ...content.festival,
-      features: content.festival?.features ?? defaultSiteContent.festival.features,
+      features:
+        content.festival?.features ?? defaultSiteContent.festival.features,
     },
     program: content.program ?? defaultSiteContent.program,
     gallery: content.gallery ?? defaultSiteContent.gallery,
@@ -50,45 +588,368 @@ export async function getSiteContent(): Promise<SiteContent> {
 }
 
 export async function saveSiteContent(content: SiteContent): Promise<void> {
-  await updateStore((store) => {
-    store.siteContent = structuredClone(content);
-  });
+  getDatabase()
+    .prepare(`
+      INSERT INTO site_content (id, content_json, updated_at)
+      VALUES (1, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET
+        content_json = excluded.content_json,
+        updated_at = excluded.updated_at
+    `)
+    .run(JSON.stringify(content), new Date().toISOString());
 }
 
 export async function createRegistration(
   input: NewRegistration,
 ): Promise<Registration> {
-  return updateStore((store) => {
-    if (store.registrations.some((item) => item.email === input.email)) {
-      throw new RegistrationAlreadyExistsError();
-    }
+  const connection = getDatabase();
+  const now = new Date().toISOString();
+  try {
+    connection
+      .prepare(`
+        INSERT INTO registrations (
+          id, email, guests_count, status, consent_accepted_at, email_status,
+          email_sent_at, email_attempt_count, email_last_attempt_at,
+          email_last_error, email_provider_id, created_at, updated_at
+        ) VALUES (?, ?, ?, 'CONFIRMED', ?, 'PENDING', NULL, 0, NULL, NULL, NULL, ?, ?)
+      `)
+      .run(
+        input.id,
+        input.email,
+        input.guestsCount,
+        input.consentAcceptedAt,
+        now,
+        now,
+      );
+  } catch (error) {
+    const emailExists = connection
+      .prepare("SELECT 1 FROM registrations WHERE email = ? COLLATE NOCASE")
+      .get(input.email);
+    if (emailExists) throw new RegistrationAlreadyExistsError();
+    throw error;
+  }
 
-    const now = new Date().toISOString();
-    const registration: Registration = {
-      ...input,
-      status: "CONFIRMED",
-      emailStatus: "PENDING",
-      emailSentAt: null,
-      createdAt: now,
-      updatedAt: now,
-    };
-    store.registrations.push(registration);
-    return registration;
-  });
+  const registration = await getRegistration(input.id);
+  if (!registration) throw new Error("Created registration could not be read");
+  return registration;
 }
 
 export async function updateRegistrationEmailStatus(
   id: string,
   emailStatus: EmailStatus,
+  metadata: {
+    errorMessage?: string | null;
+    providerId?: string | null;
+    attemptedAt?: string | null;
+  } = {},
 ): Promise<void> {
-  await updateStore((store) => {
-    const registration = store.registrations.find((item) => item.id === id);
-    if (!registration) return;
+  const now = new Date().toISOString();
+  getDatabase()
+    .prepare(`
+      UPDATE registrations SET
+        email_status = @emailStatus,
+        email_sent_at = CASE
+          WHEN @emailStatus = 'SENT' THEN @now
+          ELSE email_sent_at
+        END,
+        email_last_attempt_at = COALESCE(@attemptedAt, email_last_attempt_at),
+        email_last_error = @errorMessage,
+        email_provider_id = @providerId,
+        updated_at = @now
+      WHERE id = @id
+    `)
+    .run({
+      id,
+      emailStatus,
+      now,
+      attemptedAt: metadata.attemptedAt ?? null,
+      errorMessage: metadata.errorMessage ?? null,
+      providerId: metadata.providerId ?? null,
+    });
+}
 
-    registration.emailStatus = emailStatus;
-    registration.emailSentAt = emailStatus === "SENT" ? new Date().toISOString() : null;
-    registration.updatedAt = new Date().toISOString();
-  });
+export async function beginRegistrationEmailAttempt(
+  registrationId: string,
+): Promise<EmailDelivery> {
+  const connection = getDatabase();
+  const deliveryId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  return connection.transaction(() => {
+    const registration = connection
+      .prepare(`${selectRegistrationSql} WHERE id = ?`)
+      .get(registrationId) as RegistrationRow | undefined;
+    if (!registration) throw new RegistrationNotFoundError();
+
+    const attemptNumber = registration.email_attempt_count + 1;
+    connection
+      .prepare(`
+        INSERT INTO email_deliveries (
+          id, registration_id, campaign_id, kind, recipient_email,
+          attempt_number, status, provider_id, error_message,
+          created_at, sent_at, updated_at
+        ) VALUES (?, ?, NULL, 'CONFIRMATION', ?, ?, 'PENDING', NULL, NULL, ?, NULL, ?)
+      `)
+      .run(
+        deliveryId,
+        registrationId,
+        registration.email,
+        attemptNumber,
+        now,
+        now,
+      );
+    connection
+      .prepare(`
+        UPDATE registrations SET
+          email_status = 'PENDING',
+          email_attempt_count = ?,
+          email_last_attempt_at = ?,
+          email_last_error = NULL,
+          email_provider_id = NULL,
+          updated_at = ?
+        WHERE id = ?
+      `)
+      .run(attemptNumber, now, now, registrationId);
+
+    return deliveryFromRow(
+      connection
+        .prepare("SELECT * FROM email_deliveries WHERE id = ?")
+        .get(deliveryId) as EmailDeliveryRow,
+    );
+  })();
+}
+
+export async function beginBroadcastEmailAttempt(
+  campaignId: string,
+  registrationId: string,
+): Promise<EmailDelivery> {
+  const connection = getDatabase();
+  const deliveryId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  return connection.transaction(() => {
+    const campaign = connection
+      .prepare("SELECT id FROM email_campaigns WHERE id = ?")
+      .get(campaignId);
+    if (!campaign) throw new EmailCampaignNotFoundError();
+    const registration = connection
+      .prepare("SELECT id, email FROM registrations WHERE id = ?")
+      .get(registrationId) as { id: string; email: string } | undefined;
+    if (!registration) throw new RegistrationNotFoundError();
+
+    const previous = connection
+      .prepare(`
+        SELECT COALESCE(MAX(attempt_number), 0) AS attempt_number
+        FROM email_deliveries
+        WHERE campaign_id = ? AND registration_id = ? AND kind = 'BROADCAST'
+      `)
+      .get(campaignId, registrationId) as { attempt_number: number };
+    const attemptNumber = previous.attempt_number + 1;
+
+    connection
+      .prepare(`
+        INSERT INTO email_deliveries (
+          id, registration_id, campaign_id, kind, recipient_email,
+          attempt_number, status, provider_id, error_message,
+          created_at, sent_at, updated_at
+        ) VALUES (?, ?, ?, 'BROADCAST', ?, ?, 'PENDING', NULL, NULL, ?, NULL, ?)
+      `)
+      .run(
+        deliveryId,
+        registrationId,
+        campaignId,
+        registration.email,
+        attemptNumber,
+        now,
+        now,
+      );
+
+    return deliveryFromRow(
+      connection
+        .prepare("SELECT * FROM email_deliveries WHERE id = ?")
+        .get(deliveryId) as EmailDeliveryRow,
+    );
+  })();
+}
+
+export async function completeEmailAttempt(
+  deliveryId: string,
+  result:
+    | { ok: true; providerId: string | null }
+    | { ok: false; errorMessage: string },
+): Promise<EmailDelivery> {
+  const connection = getDatabase();
+  const now = new Date().toISOString();
+
+  return connection.transaction(() => {
+    const delivery = connection
+      .prepare("SELECT * FROM email_deliveries WHERE id = ?")
+      .get(deliveryId) as EmailDeliveryRow | undefined;
+    if (!delivery) throw new Error("Email delivery not found");
+    if (delivery.status !== "PENDING") return deliveryFromRow(delivery);
+
+    const status: EmailStatus = result.ok ? "SENT" : "FAILED";
+    const providerId = result.ok ? result.providerId : null;
+    const errorMessage = result.ok ? null : result.errorMessage.slice(0, 1_000);
+    connection
+      .prepare(`
+        UPDATE email_deliveries SET
+          status = ?, provider_id = ?, error_message = ?,
+          sent_at = ?, updated_at = ?
+        WHERE id = ?
+      `)
+      .run(
+        status,
+        providerId,
+        errorMessage,
+        result.ok ? now : null,
+        now,
+        deliveryId,
+      );
+
+    if (delivery.kind === "CONFIRMATION") {
+      connection
+        .prepare(`
+          UPDATE registrations SET
+            email_status = ?,
+            email_sent_at = CASE WHEN ? = 'SENT' THEN ? ELSE email_sent_at END,
+            email_last_error = ?,
+            email_provider_id = ?,
+            updated_at = ?
+          WHERE id = ?
+        `)
+        .run(
+          status,
+          status,
+          now,
+          errorMessage,
+          providerId,
+          now,
+          delivery.registration_id,
+        );
+    }
+
+    return deliveryFromRow(
+      connection
+        .prepare("SELECT * FROM email_deliveries WHERE id = ?")
+        .get(deliveryId) as EmailDeliveryRow,
+    );
+  })();
+}
+
+export async function listEmailDeliveries(options: {
+  registrationId?: string;
+  campaignId?: string;
+  limit?: number;
+} = {}): Promise<EmailDelivery[]> {
+  const clauses: string[] = [];
+  const parameters: Array<string | number> = [];
+  if (options.registrationId) {
+    clauses.push("registration_id = ?");
+    parameters.push(options.registrationId);
+  }
+  if (options.campaignId) {
+    clauses.push("campaign_id = ?");
+    parameters.push(options.campaignId);
+  }
+  const limit = Math.min(Math.max(options.limit ?? 100, 1), 500);
+  parameters.push(limit);
+  const where = clauses.length > 0 ? `WHERE ${clauses.join(" AND ")}` : "";
+  const rows = getDatabase()
+    .prepare(`SELECT * FROM email_deliveries ${where} ORDER BY created_at DESC LIMIT ?`)
+    .all(...parameters) as EmailDeliveryRow[];
+  return rows.map(deliveryFromRow);
+}
+
+export async function createEmailCampaign(
+  input: NewEmailCampaign,
+): Promise<EmailCampaign> {
+  const now = new Date().toISOString();
+  const connection = getDatabase();
+  connection
+    .prepare(`
+      INSERT INTO email_campaigns (
+        id, subject, message, cta_label, cta_url, status,
+        recipient_count, sent_count, failed_count, created_at, completed_at
+      ) VALUES (?, ?, ?, ?, ?, 'PENDING', ?, 0, 0, ?, NULL)
+    `)
+    .run(
+      input.id,
+      input.subject,
+      input.message,
+      input.ctaLabel,
+      input.ctaUrl,
+      input.recipientCount,
+      now,
+    );
+  const campaign = await getEmailCampaign(input.id);
+  if (!campaign) throw new Error("Created email campaign could not be read");
+  return campaign;
+}
+
+export async function markEmailCampaignSending(id: string): Promise<void> {
+  const result = getDatabase()
+    .prepare("UPDATE email_campaigns SET status = 'SENDING' WHERE id = ?")
+    .run(id);
+  if (result.changes !== 1) throw new EmailCampaignNotFoundError();
+}
+
+export async function finalizeEmailCampaign(
+  id: string,
+): Promise<EmailCampaign> {
+  const connection = getDatabase();
+  const completedAt = new Date().toISOString();
+  connection.transaction(() => {
+    const campaign = connection
+      .prepare("SELECT recipient_count FROM email_campaigns WHERE id = ?")
+      .get(id) as { recipient_count: number } | undefined;
+    if (!campaign) throw new EmailCampaignNotFoundError();
+    const totals = connection
+      .prepare(`
+        SELECT
+          SUM(CASE WHEN status = 'SENT' THEN 1 ELSE 0 END) AS sent_count,
+          SUM(CASE WHEN status = 'FAILED' THEN 1 ELSE 0 END) AS failed_count
+        FROM email_deliveries
+        WHERE campaign_id = ? AND kind = 'BROADCAST'
+      `)
+      .get(id) as { sent_count: number | null; failed_count: number | null };
+    const sentCount = totals.sent_count ?? 0;
+    const failedCount = totals.failed_count ?? 0;
+    const status: EmailCampaignStatus =
+      campaign.recipient_count === 0 || sentCount === campaign.recipient_count
+        ? "COMPLETED"
+        : sentCount > 0
+          ? "PARTIAL"
+          : "FAILED";
+    connection
+      .prepare(`
+        UPDATE email_campaigns SET
+          status = ?, sent_count = ?, failed_count = ?, completed_at = ?
+        WHERE id = ?
+      `)
+      .run(status, sentCount, failedCount, completedAt, id);
+  })();
+
+  const campaign = await getEmailCampaign(id);
+  if (!campaign) throw new EmailCampaignNotFoundError();
+  return campaign;
+}
+
+export async function getEmailCampaign(
+  id: string,
+): Promise<EmailCampaign | null> {
+  const row = getDatabase()
+    .prepare("SELECT * FROM email_campaigns WHERE id = ?")
+    .get(id) as EmailCampaignRow | undefined;
+  return row ? campaignFromRow(row) : null;
+}
+
+export async function listEmailCampaigns(limit = 50): Promise<EmailCampaign[]> {
+  const safeLimit = Math.min(Math.max(limit, 1), 200);
+  const rows = getDatabase()
+    .prepare("SELECT * FROM email_campaigns ORDER BY created_at DESC LIMIT ?")
+    .all(safeLimit) as EmailCampaignRow[];
+  return rows.map(campaignFromRow);
 }
 
 export async function consumeRegistrationRateLimit(
@@ -97,60 +958,60 @@ export async function consumeRegistrationRateLimit(
   windowSeconds: number,
   maxRequests: number,
 ): Promise<boolean> {
-  return updateStore((store) => {
-    const rateLimit = store.rateLimits.find(
-      (item) => item.fingerprint === fingerprint,
-    );
+  const connection = getDatabase();
+  return connection.transaction(() => {
+    connection
+      .prepare("DELETE FROM registration_rate_limits WHERE window_start < ?")
+      .run(now - windowSeconds);
+    const rateLimit = connection
+      .prepare(`
+        SELECT fingerprint, window_start, request_count
+        FROM registration_rate_limits WHERE fingerprint = ?
+      `)
+      .get(fingerprint) as
+      | {
+          fingerprint: string;
+          window_start: number;
+          request_count: number;
+        }
+      | undefined;
 
     if (!rateLimit) {
-      store.rateLimits.push({ fingerprint, windowStart: now, requestCount: 1 });
+      connection
+        .prepare(`
+          INSERT INTO registration_rate_limits (
+            fingerprint, window_start, request_count
+          ) VALUES (?, ?, 1)
+        `)
+        .run(fingerprint, now);
       return true;
     }
 
-    if (now - rateLimit.windowStart >= windowSeconds) {
-      rateLimit.windowStart = now;
-      rateLimit.requestCount = 1;
+    if (now - rateLimit.window_start >= windowSeconds) {
+      connection
+        .prepare(`
+          UPDATE registration_rate_limits
+          SET window_start = ?, request_count = 1
+          WHERE fingerprint = ?
+        `)
+        .run(now, fingerprint);
       return true;
     }
+    if (rateLimit.request_count >= maxRequests) return false;
 
-    if (rateLimit.requestCount >= maxRequests) return false;
-
-    rateLimit.requestCount += 1;
+    connection
+      .prepare(`
+        UPDATE registration_rate_limits
+        SET request_count = request_count + 1
+        WHERE fingerprint = ?
+      `)
+      .run(fingerprint);
     return true;
-  });
+  })();
 }
 
-async function readStore(): Promise<Store> {
-  try {
-    const value = JSON.parse(await readFile(getDataFilePath(), "utf8")) as Store;
-    if (!Array.isArray(value.registrations) || !Array.isArray(value.rateLimits)) {
-      throw new Error("invalid store shape");
-    }
-    return value;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return emptyStore();
-    throw new Error("Не удалось прочитать локальное хранилище регистраций", {
-      cause: error,
-    });
-  }
-}
-
-async function updateStore<T>(mutate: (store: Store) => T): Promise<T> {
-  const operation = writeQueue.then(async () => {
-    const store = await readStore();
-    const result = mutate(store);
-    const destination = getDataFilePath();
-    await mkdir(dirname(destination), { recursive: true });
-
-    const temporary = `${destination}.tmp`;
-    await writeFile(temporary, `${JSON.stringify(store, null, 2)}\n`, "utf8");
-    await rename(temporary, destination);
-    return result;
-  });
-
-  writeQueue = operation.then(
-    () => undefined,
-    () => undefined,
-  );
-  return operation;
+export function closeDatabase(): void {
+  if (database?.open) database.close();
+  database = null;
+  openedDatabasePath = null;
 }

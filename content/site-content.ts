@@ -34,6 +34,7 @@ export type GalleryImage = {
 };
 
 export type SiteContent = {
+  version: number;
   festival: FestivalContent;
   program: ProgramContentItem[];
   heroImage: string;
@@ -42,6 +43,7 @@ export type SiteContent = {
 };
 
 export const defaultSiteContent: SiteContent = {
+  version: 3,
   festival: {
     name: defaultFestival.name,
     date: defaultFestival.date,
@@ -53,7 +55,7 @@ export const defaultSiteContent: SiteContent = {
     features: defaultFestival.features.map((feature) => ({ ...feature })),
   },
   program: defaultProgram.map((item) => ({ ...item })),
-  heroImage: "/images/hero-festival.webp",
-  programImage: "/images/evening-concert.webp",
+  heroImage: "/images/lays-mushroom-pack.webp",
+  programImage: "/images/dinamo-stadium.webp",
   gallery: defaultGallery.map((item) => ({ ...item })),
 };

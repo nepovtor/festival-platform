@@ -2,17 +2,20 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AdminDashboard } from "@/components/admin-dashboard";
 import { AdminLogoutButton } from "@/components/admin-logout-button";
-import { listRegistrations } from "@/db";
+import { listEmailCampaigns, listRegistrations } from "@/db";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Регистрации — Город говорит",
+  title: "Регистрации — Грибной фестиваль Lay’s",
   robots: { index: false, follow: false },
 };
 
 export default async function RegistrationsAdminPage() {
-  const rows = await listRegistrations();
+  const [rows, campaigns] = await Promise.all([
+    listRegistrations(),
+    listEmailCampaigns(),
+  ]);
 
   return (
     <main className="admin-page">
@@ -26,7 +29,10 @@ export default async function RegistrationsAdminPage() {
         </div>
         <AdminLogoutButton />
       </header>
-      <AdminDashboard registrations={rows} />
+      <AdminDashboard
+        initialCampaigns={campaigns}
+        registrations={rows}
+      />
     </main>
   );
 }

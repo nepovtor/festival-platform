@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminSessionCookie, isValidAdminSession } from "@/lib/admin-session";
+import { ensureAdminCsrfCookie } from "@/lib/admin-request-security";
 
 export async function proxy(request: NextRequest) {
   const username = process.env.ADMIN_USERNAME;
-  const password = process.env.ADMIN_PASSWORD;
+  const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+  const sessionSecret = process.env.ADMIN_SESSION_SECRET;
 
-  if (!username || !password) {
+  if (
+    !username ||
+    !passwordHash ||
+    !sessionSecret ||
+    sessionSecret.length < 32
+  ) {
     return new NextResponse("Доступ администратора не настроен", {
       status: 503,
     });
@@ -13,15 +20,18 @@ export async function proxy(request: NextRequest) {
 
   if (
     request.nextUrl.pathname === "/admin/login" ||
-    request.nextUrl.pathname === "/api/admin/login"
+    (request.nextUrl.pathname === "/api/admin/login" &&
+      request.method === "POST")
   ) {
-    return NextResponse.next();
+    return ensureAdminCsrfCookie(request, NextResponse.next());
   }
 
   const isAuthenticated = await isValidAdminSession(
     request.cookies.get(adminSessionCookie)?.value,
   );
-  if (isAuthenticated) return NextResponse.next();
+  if (isAuthenticated) {
+    return ensureAdminCsrfCookie(request, NextResponse.next());
+  }
 
   if (request.nextUrl.pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
