@@ -31,8 +31,8 @@ export function AdminLoginForm({ returnTo }: AdminLoginFormProps) {
         setMessage(result.message ?? "Не удалось выполнить вход.");
         return;
       }
-      router.replace(returnTo);
-      router.refresh();
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      window.location.replace(returnTo);
     } catch {
       setMessage("Не удалось связаться с сервером.");
     } finally {

@@ -1,4 +1,7 @@
 import { hashSync } from "bcryptjs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { POST } from "@/app/api/admin/login/route";
 import { createAdminCsrfToken } from "@/lib/admin-request-security";
@@ -8,6 +11,7 @@ import { adminCsrfCookie, adminCsrfHeader } from "@/lib/security-constants";
 const environmentKeys = [
   "ADMIN_USERNAME",
   "ADMIN_PASSWORD_HASH",
+  "ADMIN_PASSWORD",
   "ADMIN_SESSION_SECRET",
   "SITE_ORIGIN",
 ] as const;
@@ -56,6 +60,38 @@ describe("admin login route", () => {
     expect(cookie).toContain("festival_admin_session=");
     expect(cookie.toLowerCase()).toContain("httponly");
     expect(cookie.toLowerCase()).toContain("samesite=strict");
+  });
+
+  it("accepts a legacy plaintext password configured in the environment", async () => {
+    delete process.env.ADMIN_PASSWORD_HASH;
+    process.env.ADMIN_PASSWORD = "legacy-admin-password";
+
+    const response = await POST(loginRequest("legacy-admin-password"));
+
+    expect(response.status).toBe(200);
+  });
+
+  it("loads admin credentials from a .env file when runtime env vars are absent", async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), "festival-admin-"));
+    const previousWorkingDirectory = process.cwd();
+
+    try {
+      process.chdir(tempDir);
+      writeFileSync(
+        join(tempDir, ".env"),
+        "ADMIN_USERNAME=organizer\nADMIN_PASSWORD=legacy-admin-password\n",
+      );
+      delete process.env.ADMIN_USERNAME;
+      delete process.env.ADMIN_PASSWORD;
+      delete process.env.ADMIN_PASSWORD_HASH;
+
+      const response = await POST(loginRequest("legacy-admin-password"));
+
+      expect(response.status).toBe(200);
+    } finally {
+      process.chdir(previousWorkingDirectory);
+      rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
   it("rejects an invalid password and a cross-origin request", async () => {

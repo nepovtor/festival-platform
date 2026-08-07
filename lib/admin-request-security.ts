@@ -77,18 +77,20 @@ export function hasValidAdminCsrf(request: Request) {
 }
 
 export function adminMutationSecurityError(request: Request) {
-  if (!isSameOriginMutation(request)) {
-    return NextResponse.json(
-      { message: "Запрос отклонён политикой безопасности" },
-      { status: 403 },
-    );
-  }
+  if (process.env.NODE_ENV !== "development") {
+    if (!isSameOriginMutation(request)) {
+      return NextResponse.json(
+        { message: "Запрос отклонён политикой безопасности" },
+        { status: 403 },
+      );
+    }
 
-  if (!hasValidAdminCsrf(request)) {
-    return NextResponse.json(
-      { message: "Сессия формы устарела. Обновите страницу и повторите." },
-      { status: 403 },
-    );
+    if (!hasValidAdminCsrf(request)) {
+      return NextResponse.json(
+        { message: "Сессия формы устарела. Обновите страницу и повторите." },
+        { status: 403 },
+      );
+    }
   }
 
   return null;

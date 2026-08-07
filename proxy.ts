@@ -5,14 +5,12 @@ import { ensureAdminCsrfCookie } from "@/lib/admin-request-security";
 export async function proxy(request: NextRequest) {
   const username = process.env.ADMIN_USERNAME;
   const passwordHash = process.env.ADMIN_PASSWORD_HASH;
+  const password = process.env.ADMIN_PASSWORD;
   const sessionSecret = process.env.ADMIN_SESSION_SECRET;
 
-  if (
-    !username ||
-    !passwordHash ||
-    !sessionSecret ||
-    sessionSecret.length < 32
-  ) {
+  const hasAdminConfig = Boolean(username && (passwordHash || password) && sessionSecret);
+
+  if (!username || !hasAdminConfig || !sessionSecret || sessionSecret.length < 32) {
     return new NextResponse("Доступ администратора не настроен", {
       status: 503,
     });

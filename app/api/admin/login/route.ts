@@ -1,3 +1,5 @@
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { compare } from "bcryptjs";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -40,6 +42,52 @@ function isSupportedBcryptHash(value: string) {
   return cost >= 10 && cost <= 14;
 }
 
+function readEnvFileCredentials() {
+  const projectRoot = process.cwd();
+  const envPaths = [join(projectRoot, ".env"), join(projectRoot, ".env.local")];
+
+  for (const envPath of envPaths) {
+    try {
+      const raw = readFileSync(envPath, "utf8");
+      const values = new Map<string, string>();
+
+      for (const line of raw.split(/\r?\n/)) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("#")) continue;
+        const separator = trimmed.indexOf("=");
+        if (separator === -1) continue;
+        const key = trimmed.slice(0, separator).trim();
+        const value = trimmed.slice(separator + 1).trim();
+        if (key) values.set(key, value.replace(/^['"]|['"]$/g, ""));
+      }
+
+      return {
+        adminUsername: values.get("ADMIN_USERNAME"),
+        adminPasswordHash: values.get("ADMIN_PASSWORD_HASH"),
+        adminPassword: values.get("ADMIN_PASSWORD"),
+      };
+    } catch {
+      // Try the next candidate.
+    }
+  }
+
+  return {
+    adminUsername: undefined,
+    adminPasswordHash: undefined,
+    adminPassword: undefined,
+  };
+}
+
+function resolveAdminCredentials() {
+  const fileCredentials = readEnvFileCredentials();
+
+  return {
+    adminUsername: process.env.ADMIN_USERNAME ?? fileCredentials.adminUsername,
+    adminPasswordHash: process.env.ADMIN_PASSWORD_HASH ?? fileCredentials.adminPasswordHash,
+    adminPassword: process.env.ADMIN_PASSWORD ?? fileCredentials.adminPassword,
+  };
+}
+
 async function readCredentials(request: Request) {
   if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {
     return null;
@@ -63,24 +111,13 @@ export async function POST(request: Request) {
   const securityError = adminMutationSecurityError(request);
   if (securityError) return securityError;
 
-  const expectedUsername = process.env.ADMIN_USERNAME;
-  const expectedPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-  if (
-    !expectedUsername ||
-    !expectedPasswordHash ||
-    !isSupportedBcryptHash(expectedPasswordHash)
-  ) {
-    return json(
-      { message: "Доступ администратора не настроен" },
-      { status: 503 },
-    );
-  }
-
   const parsed = await readCredentials(request);
   if (!parsed?.success) {
     return json({ message: "Некорректный запрос" }, { status: 400 });
   }
 
+  const { adminUsername: expectedUsername, adminPasswordHash, adminPassword } =
+    resolveAdminCredentials();
   const rateLimit = await consumeAdminLoginAttempt(
     request,
     parsed.data.username,
@@ -97,10 +134,11 @@ export async function POST(request: Request) {
 
   let passwordMatches = false;
   try {
-    passwordMatches = await compare(
-      parsed.data.password,
-      expectedPasswordHash,
-    );
+    if (adminPasswordHash && isSupportedBcryptHash(adminPasswordHash)) {
+      passwordMatches = await compare(parsed.data.password, adminPasswordHash);
+    } else if (adminPassword) {
+      passwordMatches = parsed.data.password === adminPassword;
+    }
   } catch {
     return json(
       { message: "Доступ администратора не настроен" },
@@ -108,7 +146,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (parsed.data.username !== expectedUsername || !passwordMatches) {
+  if (!expectedUsername || parsed.data.username !== expectedUsername || !passwordMatches) {
     return json(
       { message: "Неверный логин или пароль" },
       { status: 401 },
@@ -121,7 +159,7 @@ export async function POST(request: Request) {
   response.cookies.set({
     name: adminSessionCookie,
     value: session.value,
-    expires: session.expiresAt,
+    expires: new Date(session.expiresAt),
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
