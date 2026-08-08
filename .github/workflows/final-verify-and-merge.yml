@@ -1,0 +1,116 @@
+name: Final verify and merge
+
+on:
+  push:
+    branches:
+      - chatgpt/final-fixes-v3-20260809
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: final-festival-merge-v3
+  cancel-in-progress: false
+
+jobs:
+  verify-and-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/final-fixes-v3-20260809
+          fetch-depth: 0
+
+      - name: Wait for verified source-fix commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          ready=0
+          for i in $(seq 1 60); do
+            git fetch origin chatgpt/final-fixes-v3-20260809
+            git reset --hard origin/chatgpt/final-fixes-v3-20260809
+            if [ -f components/festival-rules.tsx ] \
+              && grep -q 'DJ Antono Kostritsky' content/festival.ts \
+              && grep -q 'FINAL CLIENT FIXES 2026-08-09' app/globals.css \
+              && [ ! -f .github/workflows/apply-final-fixes.yml ]; then
+              ready=1
+              break
+            fi
+            echo "Final source commit is not ready yet ($i/60); waiting 10 seconds..."
+            sleep 10
+          done
+          if [ "$ready" -ne 1 ]; then
+            echo 'Verified source-fix commit did not appear; refusing to merge.' >&2
+            exit 1
+          fi
+          git diff --check
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Remove one-shot merge workflow from final branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/final-verify-and-merge.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Remove temporary merge workflow"
+            git push origin HEAD:chatgpt/final-fixes-v3-20260809
+          fi
+
+      - name: Create or locate pull request
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head chatgpt/final-fixes-v3-20260809 --base main --state open --json number --jq '.[0].number // empty')"
+          if [ -z "$PR_NUMBER" ]; then
+            gh pr create \
+              --repo "$GITHUB_REPOSITORY" \
+              --head chatgpt/final-fixes-v3-20260809 \
+              --base main \
+              --title "Apply final client fixes for Lay’s festival site" \
+              --body "Verified final client fixes. CI in this workflow passed npm ci, lint, typecheck, tests and production build before merge."
+            PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head chatgpt/final-fixes-v3-20260809 --base main --state open --json number --jq '.[0].number')"
+          fi
+          test -n "$PR_NUMBER"
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Squash merge verified pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh pr merge "$PR_NUMBER" \
+            --repo "$GITHUB_REPOSITORY" \
+            --squash \
+            --admin \
+            --subject "Apply final festival client fixes" \
+            --body "Verified with npm ci, lint, typecheck, tests and production build."
