@@ -1,0 +1,155 @@
+1fr auto; }
++  .festival-record-trophy { width: 66px; }
++  .festival-zone-pills article > svg { width: 34px; height: 34px; }
++}
+diff --git a/app/page.tsx b/app/page.tsx
+index 24068a5..76cc15b 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -1,31 +1,43 @@
+ import Image from "next/image";
+-import Link from "next/link";
+ import type { Metadata } from "next";
+ import { cache, type CSSProperties } from "react";
+ import { CookieConsent } from "@/components/cookie-consent";
++import { FestivalFactIcon } from "@/components/festival-fact-icon";
+ import { FestivalMotion } from "@/components/festival-motion";
++import { FestivalRules } from "@/components/festival-rules";
++import { FestivalTrophyIcon } from "@/components/festival-trophy-icon";
++import { FestivalZoneIcon, festivalZoneIconNames } from "@/components/festival-zone-icon";
+ import { RegistrationForm } from "@/components/registration-form";
+ import { SiteHeader } from "@/components/site-header";
+-import { TrackedCalendarLink } from "@/components/tracked-calendar-link";
++import { SocialIcon } from "@/components/social-icon";
+ import {
+   artists,
+   festival as campaignFestival,
+   festivalRecord,
+   zones,
+ } from "@/content/festival";
+-import type { ProgramContentItem } from "@/content/site-content";
+ import { getSiteContent } from "@/db";
+-import { buildFestivalCalendarUrl } from "@/lib/festival-calendar";
+ 
+ export const dynamic = "force-dynamic";
+ 
+ const loadSiteContent = cache(getSiteContent);
+ 
+-const artistFallbackImages = [
+-  "/images/evening-concert.webp",
+-  "/images/hero-festival.webp",
+-  "/images/craft-workshop.webp",
+-] as const;
++const artistTreatment: Record<string, string> = {
++  "Police in Paris": "artist-treatment-orange",
++  "Parade of Planets": "artist-treatment-light",
++  "Борисовский тракт": "artist-treatment-pixel",
++  WASSSUP: "artist-treatment-outline",
++  "Кавер-группа «Хуракан»": "artist-treatment-outline",
++};
++
++const mobileArtistArtwork = {
++  src: "/images/artists/dj-antono-kostritsky.webp",
++  className: "artist-treatment-dj",
++  position: "50% 45%",
++};
++
++const mobileOnlyArtist = "DJ Antono Kostritsky";
++const displayedArtists = [...artists, mobileOnlyArtist] as const;
+ 
+ function compactDate(value: string) {
+   return value.replace(/\s+\d{4}\s*$/u, "").trim();
+@@ -45,33 +57,9 @@ function compactAddress(value: string) {
+     .trim();
+ }
+ 
+-function normalizeArtistName(value: string) {
+-  return value
+-    .toLocaleLowerCase("ru")
+-    .replaceAll("ё", "е")
+-    .replace(/[«»“”„'’()]/gu, " ")
+-    .replace(/[^a-zа-я0-9]+/giu, " ")
+-    .trim();
+-}
+-
+-function artistTime(artist: string, program: ProgramContentItem[]) {
+-  const ignored = new Set([
+-    "выступление",
+-    "группы",
+-    "группа",
+-    "кавер",
+-    "бэнд",
+-    "band",
+-  ]);
+-  const artistTokens = normalizeArtistName(artist)
+-    .split(" ")
+-    .filter((token) => token.length > 3 && !ignored.has(token));
+-  const matchingItem = program.find((item) => {
+-    const title = normalizeArtistName(item.title);
+-    return artistTokens.some((token) => title.includes(token));
+-  });
+-
+-  return matchingItem?.time ?? "В течение дня";
++function compactAdmission(value: string) {
++  const compact = value.replace(/^Вход\s+/iu, "").trim();
++  return /^бесплатн(?:ый|ая|ое)$/iu.test(compact) ? "Бесплатно" : compact;
+ }
+ 
+ function revealStyle(index: number) {
+@@ -118,8 +106,7 @@ export default async function Home() {
+   const dateShort = compactDate(festival.date);
+   const placeShort = compactPlace(festival.place);
+   const addressShort = compactAddress(festival.address);
+-  const city = festival.address.split(",")[0]?.trim() || "Минск";
+-  const featureImage = gallery.at(-1);
++  const admissionShort = compactAdmission(campaignFestival.admission);
+ 
+   return (
+     <>
+@@ -161,17 +148,6 @@ export default async function Home() {
+ 
+           <div className="festival-shell festival-hero-inner">
+             <div className="festival-hero-copy" data-hero-entrance>
+-              <p className="festival-eyebrow">Возвращение того самого вкуса</p>
+-              <div className="festival-hero-brand">
+-                <Image
+-                  alt="Lay’s"
+-                  className="festival-hero-logo"
+-                  height={190}
+-                  src="/images/lays-logo-pack-cutout.webp"
+-                  width={190}
+-                />
+-                <span>представляет</span>
+-              </div>
+               <h1 id="hero-title">
+                 Грибной
+                 <span>фестиваль</span>
+@@ -202,20 +178,20 @@ export default async function Home() {
+ 
+           <dl className="festival-hero-facts" aria-label="Информация о фестивале">
+             <div>
+-              <dt aria-label="Дата">▣</dt>
++              <dt aria-label="Дата"><FestivalFactIcon name="calendar" /></dt>
+               <dd>{dateShort}</dd>
+             </div>
+             <div>
+-              <dt aria-label="Время">◷</dt>
++              <dt aria-label="Время"><FestivalFactIcon name="clock" /></dt>
+               <dd>{festival.time}</dd>
+             </div>
+             <div className="festival-hero-location">
+-              <dt aria-label="Место">⌖</dt>
++              <dt aria-label="Место"><FestivalFactIcon name="pin" /></dt>
+               <dd>{placeShort}, {addressShort}</dd>
+             </div>
+             <div className="festival-hero-admission">
+               <dt>{campaignFestival.age}</dt>
+-              <dd>{campaignFestival.admission}</dd>
++              <dd>{admissionShort}</dd>
+             </div>
+           </dl>
+         </section>
+@@ -224,20 +200,8 @@ export default async function Home() {
+           <div className="festival-shell">
+             <div className="festival-about-grid">
+               <div className="festival-about-c
