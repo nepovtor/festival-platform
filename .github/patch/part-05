@@ -1,0 +1,166 @@
+кте"><SocialIcon name="vk" /></a>
+           </div>
+           <p className="festival-footer-license">
+             Удостоверение № 3614 от 05.08.2026 г. выдано Управлением культуры
+             Минского городского исполнительного комитета. Организатор: ООО
+             «Голоса Бай», УНП 693285991
+           </p>
+-          <div className="festival-footer-links">
+-            <span>© 2026 Lay’s</span>
+-            <Link href="/privacy">Политика обработки данных</Link>
+-            <a href="mailto:festival@lays.by">festival@lays.by</a>
+-          </div>
+         </div>
+       </footer>
+       <CookieConsent />
+diff --git a/components/photo-manager.tsx b/components/photo-manager.tsx
+index 46a02d2..5b9b5b3 100644
+--- a/components/photo-manager.tsx
++++ b/components/photo-manager.tsx
+@@ -2,6 +2,7 @@
+ 
+ import Image from "next/image";
+ import { useState } from "react";
++import { artists } from "@/content/festival";
+ import type { SiteContent } from "@/content/site-content";
+ import { adminFetch } from "@/lib/admin-csrf-client";
+ 
+@@ -110,8 +111,8 @@ export function PhotoManager({ initialContent }: PhotoManagerProps) {
+             <PhotoCard
+               key={index}
+               label={
+-                index < 5
+-                  ? `Карточка артиста ${index + 1}`
++                index < artists.length
++                  ? `Карточка: ${artists[index]}`
+                   : "Фото feature-блока"
+               }
+               src={image.src}
+diff --git a/content/festival.ts b/content/festival.ts
+index 8afeb3f..e4ba6eb 100644
+--- a/content/festival.ts
++++ b/content/festival.ts
+@@ -31,8 +31,8 @@ export const festival = {
+ } as const;
+ 
+ export const artists = [
+-  "Parade of Planets",
+   "Police in Paris",
++  "Parade of Planets",
+   "Борисовский тракт",
+   "WASSSUP",
+   "Кавер-группа «Хуракан»",
+diff --git a/content/gallery.ts b/content/gallery.ts
+index c62dd5f..1f79658 100644
+--- a/content/gallery.ts
++++ b/content/gallery.ts
+@@ -1,33 +1,33 @@
+ export const gallery = [
+   {
+-    src: "/images/hero-festival.webp",
+-    alt: "Гости отдыхают у сцены городского фестиваля в золотой час",
++    src: "/images/artists/police-in-paris.webp",
++    alt: "Police in Paris на грибном фестивале Lay’s",
+     className: "gallery-wide",
+-    position: "50% 52%",
++    position: "50% 50%",
+   },
+   {
+-    src: "/images/craft-workshop.webp",
+-    alt: "Семейный мастер-класс по керамике в городском парке",
++    src: "/images/artists/parade-of-planets.webp",
++    alt: "Parade of Planets на грибном фестивале Lay’s",
+     className: "gallery-tall",
+-    position: "50% 42%",
++    position: "50% 50%",
+   },
+   {
+-    src: "/images/evening-concert.webp",
+-    alt: "Вечерний концерт под гирляндами",
++    src: "/images/artists/borisovskiy-trakt.webp",
++    alt: "Группа «Борисовский тракт» на грибном фестивале Lay’s",
+     className: "gallery-standard",
+-    position: "50% 46%",
++    position: "50% 50%",
+   },
+   {
+-    src: "/images/hero-festival.webp",
+-    alt: "Летний фестиваль в центральном парке",
++    src: "/images/artists/wasssup.webp",
++    alt: "WASSSUP на грибном фестивале Lay’s",
+     className: "gallery-standard",
+-    position: "76% 50%",
++    position: "50% 50%",
+   },
+   {
+-    src: "/images/evening-concert.webp",
+-    alt: "Гости танцуют перед живой сценой",
++    src: "/images/artists/hurakan.webp",
++    alt: "Кавер-группа «Хуракан» на грибном фестивале Lay’s",
+     className: "gallery-wide",
+-    position: "50% 72%",
++    position: "50% 50%",
+   },
+   {
+     src: "/images/craft-workshop.webp",
+diff --git a/content/site-content.ts b/content/site-content.ts
+index d3d6feb..8a757b0 100644
+--- a/content/site-content.ts
++++ b/content/site-content.ts
+@@ -74,7 +74,7 @@ export function migrateRegistrationEmailV4(
+ }
+ 
+ export const defaultSiteContent: SiteContent = {
+-  version: 5,
++  version: 6,
+   festival: {
+     name: defaultFestival.name,
+     date: defaultFestival.date,
+diff --git a/db/index.ts b/db/index.ts
+index 4a4d2a0..9b42fdc 100644
+--- a/db/index.ts
++++ b/db/index.ts
+@@ -252,6 +252,32 @@ let database: Database.Database | null = null;
+ let openedDatabasePath: string | null = null;
+ const confirmationAttemptLeaseMs = 5 * 60 * 1_000;
+ 
++const legacyArtistGallerySourcesV5 = [
++  "/images/hero-festival.webp",
++  "/images/craft-workshop.webp",
++  "/images/evening-concert.webp",
++  "/images/hero-festival.webp",
++  "/images/evening-concert.webp",
++] as const;
++
++function migrateLegacyArtistGalleryDefaults(
++  gallery: SiteContent["gallery"],
++  defaults: SiteContent["gallery"],
++) {
++  return gallery.map((item, index) => {
++    const legacySource = legacyArtistGallerySourcesV5[index];
++    const replacement = defaults[index];
++    if (legacySource && replacement && item?.src === legacySource) {
++      return {
++        ...item,
++        src: replacement.src,
++        alt: replacement.alt,
++      };
++    }
++    return item;
++  });
++}
++
+ export class RegistrationAlreadyExistsError extends Error {
+   constructor() {
+     super("Registration already exists");
+@@ -750,9 +776,12 @@ export async function getSiteContent(): Promise<SiteContent> {
+         "programImage",
+         defaults.programImage,
+       ),
+-      gallery: Array.isArray(parsed.gallery)
+-        ? (parsed.gallery as SiteContent["gallery"])
+-        : defaults.gallery,
++      gallery: migrateLegacyArtistGalleryDefaults(
++        Array.isArray(parsed.gallery)
++          ? (parsed.gallery as SiteContent["gallery"])
++          
