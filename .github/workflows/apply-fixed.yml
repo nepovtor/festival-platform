@@ -1,0 +1,45 @@
+name: Apply prepared festival fixes
+
+on:
+  push:
+    branches:
+      - chatgpt/final-client-fixes-20260809
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/final-client-fixes-20260809
+          fetch-depth: 0
+
+      - name: Reconstruct and validate patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/fullpatch/part-* | base64 --decode | gzip -dc > /tmp/final-fixes.patch
+          git apply --check --binary /tmp/final-fixes.patch
+
+      - name: Apply final project changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --binary /tmp/final-fixes.patch
+          rm -rf .github/fullpatch .github/patch
+          rm -f .github/workflows/apply-fixed.yml
+
+      - name: Commit applied changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apply final festival client fixes"
+          git push origin HEAD:chatgpt/final-client-fixes-20260809
