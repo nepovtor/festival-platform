@@ -25,7 +25,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .github/fullpatch/part-* | base64 --decode | gzip -dc > /tmp/final-fixes.patch
+          echo 'Patch chunk checksums:'
+          for f in .github/fullpatch/part-*; do wc -c "$f"; sha256sum "$f"; done
+          cat .github/fullpatch/part-* > /tmp/final-fixes.b64
+          echo 'Combined patch payload:'
+          wc -c /tmp/final-fixes.b64
+          sha256sum /tmp/final-fixes.b64
+          base64 --decode /tmp/final-fixes.b64 | gzip -dc > /tmp/final-fixes.patch
+          sha256sum /tmp/final-fixes.patch
           git apply --check --binary /tmp/final-fixes.patch
 
       - name: Apply final project changes
