@@ -48,7 +48,7 @@ function readEnvFileCredentials() {
 
   for (const envPath of envPaths) {
     try {
-      const raw = readFileSync(envPath, "utf8");
+      const raw = readFileSync(/*turbopackIgnore: true*/ envPath, "utf8");
       const values = new Map<string, string>();
 
       for (const line of raw.split(/\r?\n/)) {

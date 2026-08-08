@@ -4,7 +4,10 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as previewEmail } from "@/app/api/admin/email-preview/route";
 import { PUT } from "@/app/api/admin/site-content/route";
-import { defaultSiteContent } from "@/content/site-content";
+import {
+  defaultSiteContent,
+  legacyRegistrationEmailV4,
+} from "@/content/site-content";
 import { closeDatabase, getSiteContent } from "@/db";
 import { createAdminCsrfToken } from "@/lib/admin-request-security";
 import { adminCsrfCookie, adminCsrfHeader } from "@/lib/security-constants";
@@ -87,6 +90,7 @@ describe("admin site content and email preview", () => {
     const content = structuredClone(defaultSiteContent);
     content.version = defaultSiteContent.version - 1;
     content.festival.name = "Сохранённая версия фестиваля";
+    content.registrationEmail = structuredClone(legacyRegistrationEmailV4);
     content.registrationEmail.heading = "Сохранённый заголовок";
 
     const response = await PUT(contentRequest(content));
@@ -95,7 +99,12 @@ describe("admin site content and email preview", () => {
     await expect(getSiteContent()).resolves.toMatchObject({
       version: defaultSiteContent.version,
       festival: { name: "Сохранённая версия фестиваля" },
-      registrationEmail: { heading: "Сохранённый заголовок" },
+      registrationEmail: {
+        subject: defaultSiteContent.registrationEmail.subject,
+        heading: "Сохранённый заголовок",
+        intro: defaultSiteContent.registrationEmail.intro,
+        closing: defaultSiteContent.registrationEmail.closing,
+      },
     });
   });
 

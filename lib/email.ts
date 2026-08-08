@@ -83,6 +83,9 @@ function emailLogoUrl(siteUrl: string) {
 
 export const buildCalendarUrl = buildFestivalCalendarUrl;
 
+const registrationAttachmentMemo =
+  "Во вложении мы собрали памятку со всей важной информацией о фестивале. Сохраните ее, чтобы в этот день ничего не пропустить.";
+
 export function renderRegistrationEmail(
   content: SiteContent,
   guestsCount: number,
@@ -159,11 +162,9 @@ export function renderRegistrationEmail(
                       </div>
                       <h2 style="margin:34px 0 8px;color:#bc7a26;font-size:24px;text-transform:uppercase">Программа фестиваля</h2>
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${programHtml}</table>
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#ffe9be" style="width:100%;margin-top:28px;background:#ffe9be;border-radius:14px">
-                        <tr><td style="padding:18px;color:#563721;font-size:14px;line-height:1.55">Мы прикрепили к письму PDF с полной информацией о фестивале — его можно сохранить на телефон.</td></tr>
-                      </table>
                       <p style="margin:26px 0 0;color:#bc7a26;font-size:17px;font-weight:700;text-transform:uppercase">Вход бесплатный</p>
-                      <p style="margin:10px 0 0;color:#192b09;font-size:16px;line-height:1.6">${paragraphHtml(registrationEmail.closing)}</p>
+                      <p style="margin:22px 0 0;color:#192b09;font-size:17px;line-height:1.6">${escapeHtml(registrationAttachmentMemo)}</p>
+                      <p style="margin:18px 0 0;color:#192b09;font-size:16px;line-height:1.6">${paragraphHtml(registrationEmail.closing)}</p>
                     </td>
                   </tr>
                 </table>
@@ -173,7 +174,7 @@ export function renderRegistrationEmail(
         </body>
       </html>
     `,
-    text: `${festival.name}\n\n${registrationEmail.heading}\n\n${registrationEmail.intro}\n\n${festival.date}\n${festival.time}\n${fullAddress}\nКоличество посетителей: ${guestsCount}\n\n${registrationEmail.calendarButtonLabel}: ${calendarUrl}\n\nПРОГРАММА ФЕСТИВАЛЯ\n\n${programText}\n\nМы прикрепили к письму PDF с полной информацией о фестивале — его можно сохранить на телефон.\n\nВход бесплатный\n\n${registrationEmail.closing}`,
+    text: `${festival.name}\n\n${registrationEmail.heading}\n\n${registrationEmail.intro}\n\n${festival.date}\n${festival.time}\n${fullAddress}\nКоличество посетителей: ${guestsCount}\n\n${registrationEmail.calendarButtonLabel}: ${calendarUrl}\n\nПРОГРАММА ФЕСТИВАЛЯ\n\n${programText}\n\nВход бесплатный\n\n${registrationAttachmentMemo}\n\n${registrationEmail.closing}`,
   };
 }
 

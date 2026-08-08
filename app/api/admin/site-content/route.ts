@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { defaultSiteContent } from "@/content/site-content";
+import {
+  defaultSiteContent,
+  migrateRegistrationEmailV4,
+} from "@/content/site-content";
 import { getSiteContent, saveSiteContent } from "@/db";
 import { adminMutationSecurityError } from "@/lib/admin-request-security";
 
@@ -88,9 +91,13 @@ export async function PUT(request: Request) {
 
   await saveSiteContent({
     ...parsed.data,
+    registrationEmail:
+      parsed.data.version < defaultSiteContent.version
+        ? migrateRegistrationEmailV4(parsed.data.registrationEmail)
+        : parsed.data.registrationEmail,
     // The version is server-owned metadata. Older open admin tabs may submit
-    // their previous version, but their valid text edits must not be migrated
-    // away on the next read.
+    // their previous version; known legacy defaults are upgraded above while
+    // real edits from that tab are preserved.
     version: defaultSiteContent.version,
   });
   return Response.json({ success: true });

@@ -6,7 +6,11 @@ import {
 } from "node:fs";
 import { dirname } from "node:path";
 import Database from "better-sqlite3";
-import { defaultSiteContent, type SiteContent } from "@/content/site-content";
+import {
+  defaultSiteContent,
+  legacyRegistrationEmailV4,
+  type SiteContent,
+} from "@/content/site-content";
 import {
   getDatabaseFilePath,
   getDataFilePath,
@@ -650,6 +654,62 @@ function storedString(
   return typeof source[key] === "string" ? source[key] : fallback;
 }
 
+function normalizeSiteContent(
+  parsed: Record<string, unknown>,
+  defaults: SiteContent,
+  migrateRegistrationEmailDefaults = false,
+): SiteContent {
+  const festival = isRecord(parsed.festival) ? parsed.festival : {};
+  const registrationEmail = isRecord(parsed.registrationEmail)
+    ? parsed.registrationEmail
+    : {};
+  const registrationEmailValue = (
+    key: keyof SiteContent["registrationEmail"],
+  ) => {
+    const fallback = defaults.registrationEmail[key];
+    const stored = storedString(registrationEmail, key, fallback);
+    return migrateRegistrationEmailDefaults &&
+      stored === legacyRegistrationEmailV4[key]
+      ? fallback
+      : stored;
+  };
+
+  return {
+    version: defaultSiteContent.version,
+    festival: {
+      name: storedString(festival, "name", defaults.festival.name),
+      date: storedString(festival, "date", defaults.festival.date),
+      time: storedString(festival, "time", defaults.festival.time),
+      place: storedString(festival, "place", defaults.festival.place),
+      address: storedString(festival, "address", defaults.festival.address),
+      description: storedString(
+        festival,
+        "description",
+        defaults.festival.description,
+      ),
+      about: storedString(festival, "about", defaults.festival.about),
+      features: Array.isArray(festival.features)
+        ? (festival.features as SiteContent["festival"]["features"])
+        : defaults.festival.features,
+    },
+    program: Array.isArray(parsed.program)
+      ? (parsed.program as SiteContent["program"])
+      : defaults.program,
+    registrationEmail: {
+      subject: registrationEmailValue("subject"),
+      heading: registrationEmailValue("heading"),
+      intro: registrationEmailValue("intro"),
+      closing: registrationEmailValue("closing"),
+      calendarButtonLabel: registrationEmailValue("calendarButtonLabel"),
+    },
+    heroImage: storedString(parsed, "heroImage", defaults.heroImage),
+    programImage: storedString(parsed, "programImage", defaults.programImage),
+    gallery: Array.isArray(parsed.gallery)
+      ? (parsed.gallery as SiteContent["gallery"])
+      : defaults.gallery,
+  };
+}
+
 export async function getSiteContent(): Promise<SiteContent> {
   const row = getDatabase()
     .prepare("SELECT content_json FROM site_content WHERE id = 1")
@@ -671,7 +731,7 @@ export async function getSiteContent(): Promise<SiteContent> {
       ? parsed.version
       : 0;
 
-  if (storedVersion < defaultSiteContent.version) {
+  if (storedVersion < 4) {
     const legacyHeroImage = storedString(
       parsed,
       "heroImage",
@@ -702,65 +762,19 @@ export async function getSiteContent(): Promise<SiteContent> {
     return upgraded;
   }
 
-  const festival = isRecord(parsed.festival) ? parsed.festival : {};
-  const registrationEmail = isRecord(parsed.registrationEmail)
-    ? parsed.registrationEmail
-    : {};
-
-  return {
-    version: defaultSiteContent.version,
-    festival: {
-      name: storedString(festival, "name", defaults.festival.name),
-      date: storedString(festival, "date", defaults.festival.date),
-      time: storedString(festival, "time", defaults.festival.time),
-      place: storedString(festival, "place", defaults.festival.place),
-      address: storedString(festival, "address", defaults.festival.address),
-      description: storedString(
-        festival,
-        "description",
-        defaults.festival.description,
-      ),
-      about: storedString(festival, "about", defaults.festival.about),
-      features: Array.isArray(festival.features)
-        ? (festival.features as SiteContent["festival"]["features"])
-        : defaults.festival.features,
-    },
-    program: Array.isArray(parsed.program)
-      ? (parsed.program as SiteContent["program"])
-      : defaults.program,
-    registrationEmail: {
-      subject: storedString(
-        registrationEmail,
-        "subject",
-        defaults.registrationEmail.subject,
-      ),
-      heading: storedString(
-        registrationEmail,
-        "heading",
-        defaults.registrationEmail.heading,
-      ),
-      intro: storedString(
-        registrationEmail,
-        "intro",
-        defaults.registrationEmail.intro,
-      ),
-      closing: storedString(
-        registrationEmail,
-        "closing",
-        defaults.registrationEmail.closing,
-      ),
-      calendarButtonLabel: storedString(
-        registrationEmail,
-        "calendarButtonLabel",
-        defaults.registrationEmail.calendarButtonLabel,
-      ),
-    },
-    heroImage: storedString(parsed, "heroImage", defaults.heroImage),
-    programImage: storedString(parsed, "programImage", defaults.programImage),
-    gallery: Array.isArray(parsed.gallery)
-      ? (parsed.gallery as SiteContent["gallery"])
-      : defaults.gallery,
-  };
+  const normalized = normalizeSiteContent(
+    parsed,
+    defaults,
+    storedVersion === 4,
+  );
+  if (storedVersion < defaultSiteContent.version) {
+    getDatabase()
+      .prepare(
+        "UPDATE site_content SET content_json = ?, updated_at = ? WHERE id = 1",
+      )
+      .run(JSON.stringify(normalized), new Date().toISOString());
+  }
+  return normalized;
 }
 
 export async function saveSiteContent(content: SiteContent): Promise<void> {

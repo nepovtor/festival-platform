@@ -220,7 +220,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
                 </td>
               </tr>
               <tr>
-                <th scope="row">Заголовок</th>
+                <th scope="row">Приветствие / заголовок</th>
                 <td>
                   <input
                     maxLength={120}
@@ -232,7 +232,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
                 </td>
               </tr>
               <tr>
-                <th scope="row">Вводный текст</th>
+                <th scope="row">Текст после приветствия</th>
                 <td>
                   <textarea
                     maxLength={800}
@@ -245,7 +245,7 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
                 </td>
               </tr>
               <tr>
-                <th scope="row">Заключительный текст</th>
+                <th scope="row">Завершение и подпись</th>
                 <td>
                   <textarea
                     maxLength={800}

@@ -1,5 +1,30 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Lays Cyr";
+  src: url("/fonts/lays/LaysCyr-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lays Cyr";
+  src: url("/fonts/lays/LaysCyr-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lays Cyr Display";
+  src: url("/fonts/lays/LaysCyr-ExtraBoldCondensed.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 800;
+  font-stretch: condensed;
+  font-display: swap;
+}
+
 :root {
   --page: #f8f6f1;
   --card: #fffdfa;
@@ -1594,8 +1619,8 @@ body.menu-open { overflow: hidden; }
   --festival-cream: #ffe9be;
   --festival-paper: #fff9ef;
   --festival-red: #d8251e;
-  --festival-display: "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", Arial, sans-serif;
-  --festival-body: Arial, Helvetica, sans-serif;
+  --festival-display: "Lays Cyr Display", "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", Arial, sans-serif;
+  --festival-body: "Lays Cyr", Arial, Helvetica, sans-serif;
 }
 
 html { scroll-padding-top: 88px; }
@@ -3003,13 +3028,59 @@ body {
   .festival-feature-grid > article { min-height: 180px; }
   .festival-feature-photo { min-height: 280px; }
   .festival-feature-photo figcaption { right: 18px; bottom: 17px; left: 18px; align-items: start; flex-direction: column; gap: 5px; }
-  .festival-artists { padding-bottom: 130px; }
-  .festival-artist-grid { grid-template-columns: 1fr; gap: 25px; }
+  .festival-artists {
+    padding-bottom: 130px;
+    overflow: hidden;
+    background: #f7c84d;
+  }
+  .festival-artist-grid {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 28px 10px;
+    align-items: start;
+  }
+  .festival-artist-card,
+  .festival-artist-card-1,
+  .festival-artist-card-2,
+  .festival-artist-card-3,
+  .festival-artist-card-4,
+  .festival-artist-card-5 {
+    min-width: 0;
+    justify-self: stretch;
+  }
+  .festival-artist-card-2 { grid-column: 1 / span 7; order: 1; }
+  .festival-artist-card-1 { grid-column: 8 / span 5; order: 2; }
+  .festival-artist-card-5 { grid-column: 1 / span 7; order: 3; }
+  .festival-artist-card-4 { grid-column: 8 / span 5; order: 4; }
+  .festival-artist-card-3 { grid-column: 3 / span 9; order: 5; }
   .festival-artist-image,
   .festival-artist-card-1 .festival-artist-image,
-  .festival-artist-card-2 .festival-artist-image { min-height: min(108vw, 420px); }
-  .festival-artist-name { min-height: 60px; padding-inline: 19px; }
-  .festival-artist-name h3 { font-size: 1.5rem; }
+  .festival-artist-card-2 .festival-artist-image {
+    min-height: 0;
+    aspect-ratio: 0.94;
+    border-width: 2px;
+    border-radius: 18px 18px 46% 46% / 18px 18px 14% 14%;
+    box-shadow: 0 13px 25px rgba(78, 43, 7, 0.16);
+  }
+  .festival-artist-card-1 .festival-artist-image { aspect-ratio: 0.84; }
+  .festival-artist-card-3 .festival-artist-image { aspect-ratio: 1.18; }
+  .festival-artist-card-4 .festival-artist-image { aspect-ratio: 0.86; }
+  .festival-artist-card-5 .festival-artist-image { aspect-ratio: 1.03; }
+  .festival-artist-name {
+    width: calc(100% - 12px);
+    min-height: 50px;
+    margin-top: -24px;
+    padding: 8px 13px;
+    display: grid;
+    justify-content: stretch;
+    gap: 3px;
+    text-align: center;
+  }
+  .festival-artist-name h3 {
+    font-size: clamp(0.88rem, 4.25vw, 1.35rem);
+    line-height: 1;
+    text-wrap: balance;
+  }
+  .festival-artist-name > span { font-size: 0.57rem; }
   .festival-music-ribbon { height: 58px; }
   .festival-record { border-width: 2px; border-radius: 12px; }
   .festival-record-image { min-height: 285px; }
@@ -3062,7 +3133,9 @@ body {
   .festival-hero-product { min-height: 365px; }
   .festival-primary-button { gap: 18px; }
   .festival-about-visual { min-height: 390px; }
-  .festival-artist-name { width: calc(100% - 14px); }
+  .festival-artist-grid { gap-block: 21px; }
+  .festival-artist-name { width: calc(100% - 8px); padding-inline: 9px; }
+  .festival-artist-name h3 { font-size: clamp(0.78rem, 4.3vw, 1rem); }
   .festival-zone-pills h3 { font-size: 1.25rem; }
   .festival-registration-form .registration-form .consent-row label { font-size: 0.63rem; }
 }

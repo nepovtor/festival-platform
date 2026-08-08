@@ -213,6 +213,7 @@ describe("SQLite registration store", () => {
       DROP INDEX email_deliveries_one_pending_confirmation_idx;
       DELETE FROM schema_migrations WHERE version = 2;
     `);
+    const freshPendingAt = new Date().toISOString();
     raw.prepare(`
       INSERT INTO email_deliveries (
         id, registration_id, campaign_id, kind, recipient_email,
@@ -223,8 +224,8 @@ describe("SQLite registration store", () => {
       "newer-pending",
       "registration-1",
       "registration-1@example.com",
-      "2026-08-08T12:00:00.000Z",
-      "2026-08-08T12:00:00.000Z",
+      freshPendingAt,
+      freshPendingAt,
     );
     raw.prepare(`
       UPDATE registrations
@@ -432,6 +433,41 @@ describe("SQLite registration store", () => {
       }),
     );
     expect(defaultSiteContent.festival.name).not.toBe("Новый фестиваль");
+  });
+
+  it("upgrades v4 email defaults without overwriting admin customizations", async () => {
+    const content = structuredClone(defaultSiteContent);
+    content.version = 4;
+    content.festival.name = "Название из админки";
+    content.registrationEmail = {
+      subject: "Спасибо за регистрацию на грибной фестиваль Lay’s!",
+      heading: "Моё приветствие",
+      intro: "Ждём вас на главном грибном событии этого лета.",
+      closing: "До встречи на грибном фестивале Lay’s!",
+      calendarButtonLabel: "Сохранить дату",
+    };
+    await saveSiteContent(content);
+
+    await expect(getSiteContent()).resolves.toMatchObject({
+      version: defaultSiteContent.version,
+      festival: { name: "Название из админки" },
+      registrationEmail: {
+        subject: defaultSiteContent.registrationEmail.subject,
+        heading: "Моё приветствие",
+        intro: defaultSiteContent.registrationEmail.intro,
+        closing: defaultSiteContent.registrationEmail.closing,
+        calendarButtonLabel: "Сохранить дату",
+      },
+    });
+
+    closeDatabase();
+    await expect(getSiteContent()).resolves.toMatchObject({
+      version: defaultSiteContent.version,
+      registrationEmail: {
+        heading: "Моё приветствие",
+        calendarButtonLabel: "Сохранить дату",
+      },
+    });
   });
 
   it("imports a legacy JSON store once without losing registrations", async () => {

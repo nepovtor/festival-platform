@@ -51,8 +51,30 @@ export type SiteContent = {
   gallery: GalleryImage[];
 };
 
+export const legacyRegistrationEmailV4: RegistrationEmailContent = {
+  subject: "Спасибо за регистрацию на грибной фестиваль Lay’s!",
+  heading: "Спасибо за регистрацию!",
+  intro: "Ждём вас на главном грибном событии этого лета.",
+  closing: "До встречи на грибном фестивале Lay’s!",
+  calendarButtonLabel: "Добавить в календарь",
+};
+
+export function migrateRegistrationEmailV4(
+  value: RegistrationEmailContent,
+): RegistrationEmailContent {
+  const migrated = { ...value };
+  for (const key of Object.keys(
+    legacyRegistrationEmailV4,
+  ) as Array<keyof RegistrationEmailContent>) {
+    if (migrated[key] === legacyRegistrationEmailV4[key]) {
+      migrated[key] = defaultSiteContent.registrationEmail[key];
+    }
+  }
+  return migrated;
+}
+
 export const defaultSiteContent: SiteContent = {
-  version: 4,
+  version: 5,
   festival: {
     name: defaultFestival.name,
     date: defaultFestival.date,
@@ -65,10 +87,12 @@ export const defaultSiteContent: SiteContent = {
   },
   program: defaultProgram.map((item) => ({ ...item })),
   registrationEmail: {
-    subject: "Спасибо за регистрацию на грибной фестиваль Lay’s!",
-    heading: "Спасибо за регистрацию!",
-    intro: "Ждём вас на главном грибном событии этого лета.",
-    closing: "До встречи на грибном фестивале Lay’s!",
+    subject: "Твой билет на тот самый «Грибной фестиваль Lay’s» 🍄",
+    heading: "Здравствуйте!",
+    intro:
+      "Регистрация прошла успешно. 16 августа встречаемся на «Грибном фестивале Lay’s»!\n\nТот самый вкус уже совсем рядом, а вместе с ним музыка, развлечения, мастер-классы, подарки и много грибного настроения.",
+    closing:
+      "До встречи на самом грибном событии этого лета!\nКоманда «Грибного фестиваля Lay’s»",
     calendarButtonLabel: "Добавить в календарь",
   },
   heroImage: "/images/lays-mushroom-pack.webp",

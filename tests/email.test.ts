@@ -49,17 +49,45 @@ describe("registration email", () => {
 
     expect(rendered.subject).toBe(defaultSiteContent.registrationEmail.subject);
     expect(rendered.html).toContain(defaultSiteContent.registrationEmail.heading);
-    expect(rendered.html).toContain(defaultSiteContent.registrationEmail.intro);
-    expect(rendered.html).toContain(defaultSiteContent.registrationEmail.closing);
+    for (const paragraph of defaultSiteContent.registrationEmail.intro
+      .split("\n")
+      .filter(Boolean)) {
+      expect(rendered.html).toContain(paragraph);
+    }
+    for (const paragraph of defaultSiteContent.registrationEmail.closing
+      .split("\n")
+      .filter(Boolean)) {
+      expect(rendered.html).toContain(paragraph);
+    }
     expect(rendered.html).toContain(defaultSiteContent.festival.date);
     expect(rendered.html).toContain(defaultSiteContent.festival.time);
     expect(rendered.html).toContain(defaultSiteContent.festival.place);
     expect(rendered.html).toContain(defaultSiteContent.festival.address);
     expect(rendered.html).toContain("Количество посетителей: <strong>3</strong>");
     expect(rendered.html).toContain("Добавить в календарь");
-    expect(rendered.html).toContain("Мы прикрепили к письму PDF");
+    expect(rendered.html).toContain(
+      "Во вложении мы собрали памятку со всей важной информацией о фестивале. Сохраните ее, чтобы в этот день ничего не пропустить.",
+    );
     expect(rendered.text).toContain("Количество посетителей: 3");
-    expect(rendered.text).toContain("Мы прикрепили к письму PDF");
+    expect(rendered.text).toContain(
+      "Во вложении мы собрали памятку со всей важной информацией о фестивале. Сохраните ее, чтобы в этот день ничего не пропустить.",
+    );
+    const approvedCopy = [
+      defaultSiteContent.registrationEmail.heading,
+      defaultSiteContent.registrationEmail.intro,
+      "Во вложении мы собрали памятку со всей важной информацией о фестивале. Сохраните ее, чтобы в этот день ничего не пропустить.",
+      defaultSiteContent.registrationEmail.closing,
+    ];
+    for (let index = 1; index < approvedCopy.length; index += 1) {
+      expect(rendered.text.indexOf(approvedCopy[index])).toBeGreaterThan(
+        rendered.text.indexOf(approvedCopy[index - 1]),
+      );
+    }
+    expect(
+      rendered.text
+        .trimEnd()
+        .endsWith(defaultSiteContent.registrationEmail.closing),
+    ).toBe(true);
     for (const item of defaultSiteContent.program) {
       expect(rendered.html).toContain(item.time);
       expect(rendered.html).toContain(item.title);

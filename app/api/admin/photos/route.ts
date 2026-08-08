@@ -78,7 +78,10 @@ export async function POST(request: Request) {
 
   const filename = `${randomUUID()}.${extension}`;
   await mkdir(uploadDirectory, { recursive: true });
-  await writeFile(join(uploadDirectory, filename), bytes);
+  await writeFile(
+    join(/*turbopackIgnore: true*/ uploadDirectory, filename),
+    bytes,
+  );
 
   return NextResponse.json({ url: `/api/uploads/${filename}` });
 }
