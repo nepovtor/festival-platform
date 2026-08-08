@@ -33,17 +33,26 @@ export type GalleryImage = {
   position: string;
 };
 
+export type RegistrationEmailContent = {
+  subject: string;
+  heading: string;
+  intro: string;
+  closing: string;
+  calendarButtonLabel: string;
+};
+
 export type SiteContent = {
   version: number;
   festival: FestivalContent;
   program: ProgramContentItem[];
+  registrationEmail: RegistrationEmailContent;
   heroImage: string;
   programImage: string;
   gallery: GalleryImage[];
 };
 
 export const defaultSiteContent: SiteContent = {
-  version: 3,
+  version: 4,
   festival: {
     name: defaultFestival.name,
     date: defaultFestival.date,
@@ -55,6 +64,13 @@ export const defaultSiteContent: SiteContent = {
     features: defaultFestival.features.map((feature) => ({ ...feature })),
   },
   program: defaultProgram.map((item) => ({ ...item })),
+  registrationEmail: {
+    subject: "Спасибо за регистрацию на грибной фестиваль Lay’s!",
+    heading: "Спасибо за регистрацию!",
+    intro: "Ждём вас на главном грибном событии этого лета.",
+    closing: "До встречи на грибном фестивале Lay’s!",
+    calendarButtonLabel: "Добавить в календарь",
+  },
   heroImage: "/images/lays-mushroom-pack.webp",
   programImage: "/images/dinamo-stadium.webp",
   gallery: defaultGallery.map((item) => ({ ...item })),

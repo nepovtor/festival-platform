@@ -10,6 +10,8 @@ import type {
   EmailDelivery,
   Registration,
 } from "@/db/schema";
+import { buildFestivalCalendarUrl } from "@/lib/festival-calendar";
+import { generateRegistrationPdf } from "@/lib/registration-pdf";
 
 type EmailEnvironment = {
   RESEND_API_KEY?: string;
@@ -30,6 +32,7 @@ export type EmailResult =
         | "NOT_CONFIGURED"
         | "PROVIDER_ERROR"
         | "NETWORK_ERROR"
+        | "ALREADY_IN_PROGRESS"
         | "PROCESSING_ERROR";
       errorMessage: string;
     };
@@ -40,13 +43,20 @@ type RenderedEmail = {
   text: string;
 };
 
+export type EmailAttachment = {
+  filename: string;
+  content: string;
+};
+
 type EmailOptions = {
   content?: SiteContent;
   idempotencyKey?: string;
 };
 
-const defaultCalendarStart = "20260816T090000Z";
-const defaultCalendarEnd = "20260816T190000Z";
+type DeliveryOptions = {
+  idempotencyKey?: string;
+  attachments?: EmailAttachment[];
+};
 
 function escapeHtml(value: string) {
   return value
@@ -68,55 +78,32 @@ function publicSiteUrl() {
 
 function emailLogoUrl(siteUrl: string) {
   const emailEnv = process.env as EmailEnvironment;
-  return (
-    emailEnv.EMAIL_LOGO_URL ??
-    `${siteUrl}/images/lays-logo-pack-cutout.webp`
-  );
+  return emailEnv.EMAIL_LOGO_URL?.trim() || `${siteUrl}/favicon.png`;
 }
 
-function calendarTimestamp(value: string | undefined, fallback: string) {
-  return value && /^\d{8}T\d{6}Z$/.test(value) ? value : fallback;
-}
-
-export function buildCalendarUrl(content: SiteContent): string {
-  const emailEnv = process.env as EmailEnvironment;
-  const { festival } = content;
-  const fullAddress = `${festival.place}, ${festival.address}`;
-  const url = new URL("https://calendar.google.com/calendar/render");
-  url.searchParams.set("action", "TEMPLATE");
-  url.searchParams.set("text", festival.name);
-  url.searchParams.set(
-    "dates",
-    `${calendarTimestamp(emailEnv.FESTIVAL_CALENDAR_START, defaultCalendarStart)}/${calendarTimestamp(emailEnv.FESTIVAL_CALENDAR_END, defaultCalendarEnd)}`,
-  );
-  url.searchParams.set("location", fullAddress);
-  url.searchParams.set(
-    "details",
-    `${festival.description}\n\n${festival.date}, ${festival.time}\n${fullAddress}\n${publicSiteUrl()}`,
-  );
-  return url.toString();
-}
+export const buildCalendarUrl = buildFestivalCalendarUrl;
 
 export function renderRegistrationEmail(
   content: SiteContent,
   guestsCount: number,
 ): RenderedEmail & { calendarUrl: string } {
-  const { festival, program } = content;
+  const { festival, program, registrationEmail } = content;
   const siteUrl = publicSiteUrl();
   const logoUrl = emailLogoUrl(siteUrl);
   const calendarUrl = buildCalendarUrl(content);
   const fullAddress = `${festival.place}, ${festival.address}`;
+  const paragraphHtml = (value: string) =>
+    escapeHtml(value).replaceAll("\n", "<br>");
   const programHtml = program
     .map(
       (item) => `
         <tr>
-          <td style="width:76px;padding:14px 12px 14px 0;border-bottom:1px solid #ead9b5;vertical-align:top;color:#b42619;font-size:16px;font-weight:700">
+          <td style="width:108px;padding:16px 14px 16px 0;border-bottom:1px solid #e1be7e;vertical-align:top;color:#192b09;font-size:14px;font-weight:700;line-height:1.35">
             ${escapeHtml(item.time)}
           </td>
-          <td style="padding:14px 0;border-bottom:1px solid #ead9b5;vertical-align:top">
-            <div style="color:#173f2b;font-size:17px;font-weight:700;line-height:1.35">${escapeHtml(item.title)}</div>
-            <div style="margin-top:4px;color:#6f5d43;font-size:13px;line-height:1.45">${escapeHtml(item.category)} · ${escapeHtml(item.venue)}</div>
-            <div style="margin-top:6px;color:#443727;font-size:14px;line-height:1.55">${escapeHtml(item.description)}</div>
+          <td style="padding:16px 0;border-bottom:1px solid #e1be7e;vertical-align:top">
+            <div style="color:#bc7a26;font-size:17px;font-weight:700;line-height:1.3;text-transform:uppercase">${escapeHtml(item.title)}</div>
+            <div style="margin-top:6px;color:#192b09;font-size:14px;line-height:1.5">${escapeHtml(item.description)}</div>
           </td>
         </tr>
       `,
@@ -125,43 +112,58 @@ export function renderRegistrationEmail(
   const programText = program
     .map(
       (item) =>
-        `${item.time} — ${item.title}\n${item.category} · ${item.venue}\n${item.description}`,
+        `${item.time} — ${item.title}\n${item.description}`,
     )
     .join("\n\n");
 
   return {
-    subject: `Вы зарегистрированы на «${festival.name}»`,
+    subject: registrationEmail.subject,
     calendarUrl,
     html: `
       <!doctype html>
       <html lang="ru">
-        <body style="margin:0;background:#f2ead7;color:#2f291f;font-family:Arial,Helvetica,sans-serif">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width,initial-scale=1">
+          <title>${escapeHtml(registrationEmail.subject)}</title>
+        </head>
+        <body style="margin:0;background:#edcd92;color:#192b09;font-family:Arial,Helvetica,sans-serif">
           <div style="display:none;max-height:0;overflow:hidden;opacity:0">${escapeHtml(festival.date)} · ${escapeHtml(festival.time)} · регистрация подтверждена</div>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2ead7">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#edcd92" style="width:100%;background:#edcd92">
             <tr>
-              <td align="center" style="padding:24px 12px">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;overflow:hidden;border-radius:24px;background:#fffaf0;box-shadow:0 14px 34px rgba(62,45,17,.13)">
+              <td align="center" style="padding:28px 12px">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#fff9ef" style="width:100%;max-width:640px;background:#fff9ef;border:1px solid #bc7a26;border-radius:20px">
                   <tr>
-                    <td style="padding:28px 32px 20px;background:#f6cc45;text-align:center">
-                      <img src="${escapeHtml(logoUrl)}" width="112" alt="Lay’s" style="display:inline-block;width:112px;max-width:100%;height:auto;border:0">
-                      <div style="margin-top:12px;color:#173f2b;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase">${escapeHtml(festival.name)}</div>
+                    <td align="center" bgcolor="#ffe9be" style="padding:28px 32px 22px;background:#ffe9be;border-radius:20px 20px 0 0;text-align:center">
+                      <img src="${escapeHtml(logoUrl)}" width="104" alt="Lay’s" style="display:block;width:104px;max-width:100%;height:auto;margin:0 auto;border:0">
+                      <div style="margin-top:12px;color:#192b09;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase">${escapeHtml(festival.name)}</div>
                     </td>
                   </tr>
                   <tr>
                     <td style="padding:32px">
-                      <h1 style="margin:0;color:#173f2b;font-size:32px;line-height:1.08">Спасибо за регистрацию!</h1>
-                      <p style="margin:16px 0 0;font-size:17px;line-height:1.65">Ваша заявка сохранена. Ждём вас на главном грибном событии этого лета.</p>
-                      <div style="margin:24px 0;padding:20px;border:1px solid #ead9b5;border-radius:18px;background:#fff3ce;font-size:16px;line-height:1.7">
-                        <strong style="color:#173f2b">${escapeHtml(festival.date)}, ${escapeHtml(festival.time)}</strong><br>
-                        ${escapeHtml(fullAddress)}<br>
-                        Количество посетителей: <strong>${guestsCount}</strong>
+                      <h1 style="margin:0;color:#bc7a26;font-size:32px;line-height:1.12;text-transform:uppercase">${escapeHtml(registrationEmail.heading)}</h1>
+                      <p style="margin:16px 0 0;color:#192b09;font-size:17px;line-height:1.6">${paragraphHtml(registrationEmail.intro)}</p>
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#ffe9be" style="width:100%;margin:24px 0;background:#ffe9be;border:1px solid #e1be7e;border-radius:16px">
+                        <tr>
+                          <td style="padding:20px;color:#192b09;font-size:16px;line-height:1.7">
+                            <strong style="color:#bc7a26;text-transform:uppercase">${escapeHtml(festival.date)}</strong><br>
+                            <strong>${escapeHtml(festival.time)}</strong><br><br>
+                            <strong style="text-transform:uppercase">${escapeHtml(festival.place)}</strong><br>
+                            ${escapeHtml(festival.address)}<br><br>
+                            Количество посетителей: <strong>${guestsCount}</strong>
+                          </td>
+                        </tr>
+                      </table>
+                      <div style="text-align:center;padding:2px 0 6px">
+                        <a href="${escapeHtml(calendarUrl)}" style="display:inline-block;padding:14px 24px;border-radius:999px;background:#bc7a26;color:#fff9ef;text-decoration:none;font-size:15px;font-weight:700;text-transform:uppercase">${escapeHtml(registrationEmail.calendarButtonLabel)}</a>
                       </div>
-                      <div style="text-align:center">
-                        <a href="${escapeHtml(calendarUrl)}" style="display:inline-block;padding:14px 22px;border-radius:999px;background:#b42619;color:#fff;text-decoration:none;font-size:15px;font-weight:700">Добавить в календарь</a>
-                      </div>
-                      <h2 style="margin:34px 0 8px;color:#173f2b;font-size:24px">Программа фестиваля</h2>
+                      <h2 style="margin:34px 0 8px;color:#bc7a26;font-size:24px;text-transform:uppercase">Программа фестиваля</h2>
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0">${programHtml}</table>
-                      <p style="margin:28px 0 0;color:#6f5d43;font-size:13px;line-height:1.55">Покажите это письмо при необходимости организаторам. Вход на фестиваль бесплатный.</p>
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" bgcolor="#ffe9be" style="width:100%;margin-top:28px;background:#ffe9be;border-radius:14px">
+                        <tr><td style="padding:18px;color:#563721;font-size:14px;line-height:1.55">Мы прикрепили к письму PDF с полной информацией о фестивале — его можно сохранить на телефон.</td></tr>
+                      </table>
+                      <p style="margin:26px 0 0;color:#bc7a26;font-size:17px;font-weight:700;text-transform:uppercase">Вход бесплатный</p>
+                      <p style="margin:10px 0 0;color:#192b09;font-size:16px;line-height:1.6">${paragraphHtml(registrationEmail.closing)}</p>
                     </td>
                   </tr>
                 </table>
@@ -171,7 +173,7 @@ export function renderRegistrationEmail(
         </body>
       </html>
     `,
-    text: `${festival.name}\n\nСпасибо за регистрацию!\n\n${festival.date}, ${festival.time}\n${fullAddress}\nКоличество посетителей: ${guestsCount}\n\nДобавить в календарь: ${calendarUrl}\n\nПРОГРАММА ФЕСТИВАЛЯ\n\n${programText}\n\nВход на фестиваль бесплатный.`,
+    text: `${festival.name}\n\n${registrationEmail.heading}\n\n${registrationEmail.intro}\n\n${festival.date}\n${festival.time}\n${fullAddress}\nКоличество посетителей: ${guestsCount}\n\n${registrationEmail.calendarButtonLabel}: ${calendarUrl}\n\nПРОГРАММА ФЕСТИВАЛЯ\n\n${programText}\n\nМы прикрепили к письму PDF с полной информацией о фестивале — его можно сохранить на телефон.\n\nВход бесплатный\n\n${registrationEmail.closing}`,
   };
 }
 
@@ -227,7 +229,7 @@ export function renderBroadcastEmail(
 async function sendEmail(
   recipient: string,
   rendered: RenderedEmail,
-  idempotencyKey?: string,
+  options: DeliveryOptions = {},
 ): Promise<EmailResult> {
   const emailEnv = process.env as EmailEnvironment;
   if (!emailEnv.RESEND_API_KEY || !emailEnv.EMAIL_FROM) {
@@ -243,7 +245,9 @@ async function sendEmail(
     Authorization: `Bearer ${emailEnv.RESEND_API_KEY}`,
     "Content-Type": "application/json",
   };
-  if (idempotencyKey) headers["Idempotency-Key"] = idempotencyKey;
+  if (options.idempotencyKey) {
+    headers["Idempotency-Key"] = options.idempotencyKey;
+  }
 
   try {
     const response = await fetch("https://api.resend.com/emails", {
@@ -259,6 +263,9 @@ async function sendEmail(
         subject: rendered.subject,
         html: rendered.html,
         text: rendered.text,
+        ...(options.attachments?.length
+          ? { attachments: options.attachments }
+          : {}),
       }),
     });
 
@@ -305,10 +312,22 @@ export async function sendRegistrationEmail(
   options: EmailOptions = {},
 ): Promise<EmailResult> {
   const content = options.content ?? (await getSiteContent());
+  const pdf = await generateRegistrationPdf({
+    content,
+    registration: { guestsCount },
+  });
   return sendEmail(
     email,
     renderRegistrationEmail(content, guestsCount),
-    options.idempotencyKey,
+    {
+      idempotencyKey: options.idempotencyKey,
+      attachments: [
+        {
+          filename: "lays-festival-registration.pdf",
+          content: pdf.toString("base64"),
+        },
+      ],
+    },
   );
 }
 
@@ -321,7 +340,7 @@ export async function sendBroadcastEmail(
   return sendEmail(
     email,
     renderBroadcastEmail(content, campaign),
-    options.idempotencyKey,
+    { idempotencyKey: options.idempotencyKey },
   );
 }
 
@@ -334,7 +353,18 @@ function completionResult(result: EmailResult) {
 export async function deliverRegistrationConfirmation(
   registration: Registration,
 ): Promise<{ delivery: EmailDelivery; result: EmailResult }> {
-  const delivery = await beginRegistrationEmailAttempt(registration.id);
+  const claim = await beginRegistrationEmailAttempt(registration.id);
+  const { delivery } = claim;
+  if (!claim.created) {
+    return {
+      delivery,
+      result: {
+        ok: false,
+        reason: "ALREADY_IN_PROGRESS",
+        errorMessage: "Confirmation email delivery is already in progress",
+      },
+    };
+  }
   let result: EmailResult;
   try {
     result = await sendRegistrationEmail(

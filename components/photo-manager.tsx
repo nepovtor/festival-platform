@@ -79,20 +79,23 @@ export function PhotoManager({ initialContent }: PhotoManagerProps) {
     <form className="photo-manager" onSubmit={save}>
       <section className="photo-manager-intro">
         <p>Загрузите JPG, PNG или WebP размером до 6 МБ.</p>
-        <p>После загрузки нажмите «Сохранить изменения» внизу страницы.</p>
+        <p>
+          Для пачки используйте PNG/WebP с прозрачным фоном. После загрузки
+          нажмите «Сохранить изменения» внизу страницы.
+        </p>
       </section>
 
       <section className="photo-manager-section">
-        <h2>Крупные изображения</h2>
+        <h2>Визуалы нового дизайна</h2>
         <div className="photo-priority-grid">
           <PhotoCard
-            label="Обложка фестиваля"
+            label="Пачка Lay’s и декоративные pack-визуалы"
             src={content.heroImage}
             isUploading={uploading === "hero"}
             onChange={(file) => upload("hero", file)}
           />
           <PhotoCard
-            label="Изображение программы"
+            label="Фото блока «О фестивале»"
             src={content.programImage}
             isUploading={uploading === "program"}
             onChange={(file) => upload("program", file)}
@@ -101,12 +104,16 @@ export function PhotoManager({ initialContent }: PhotoManagerProps) {
       </section>
 
       <section className="photo-manager-section">
-        <h2>Галерея атмосферы</h2>
+        <h2>Карточки артистов и feature-фото</h2>
         <div className="photo-gallery-manager">
           {content.gallery.map((image, index) => (
             <PhotoCard
               key={index}
-              label={`Фото ${index + 1}`}
+              label={
+                index < 5
+                  ? `Карточка артиста ${index + 1}`
+                  : "Фото feature-блока"
+              }
               src={image.src}
               alt={image.alt}
               isUploading={uploading === index}

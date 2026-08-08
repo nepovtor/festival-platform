@@ -33,6 +33,8 @@ export async function POST(
     const updatedRegistration = await getRegistration(id);
     const status = result.ok
       ? 200
+      : result.reason === "ALREADY_IN_PROGRESS"
+        ? 409
       : result.reason === "NOT_CONFIGURED"
         ? 503
         : 502;
@@ -44,6 +46,8 @@ export async function POST(
         delivery,
         message: result.ok
           ? "Письмо отправлено повторно"
+          : result.reason === "ALREADY_IN_PROGRESS"
+            ? "Отправка письма уже выполняется"
           : "Письмо не отправлено; попытка сохранена в журнале",
       },
       { status, headers: { "Cache-Control": "no-store" } },

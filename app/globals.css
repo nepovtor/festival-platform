@@ -1583,3 +1583,1503 @@ body.menu-open { overflow: hidden; }
   .admin-campaign-submit { align-items: stretch; flex-direction: column; }
   .admin-campaign-submit .button { width: 100%; }
 }
+
+/* Festival 2026 public redesign ------------------------------------------------ */
+
+:root {
+  --festival-sand: #edcd92;
+  --festival-green: #192b09;
+  --festival-brown: #bc7a26;
+  --festival-brown-ink: #7c4710;
+  --festival-cream: #ffe9be;
+  --festival-paper: #fff9ef;
+  --festival-red: #d8251e;
+  --festival-display: "Arial Narrow", "Roboto Condensed", "Helvetica Neue Condensed", Arial, sans-serif;
+  --festival-body: Arial, Helvetica, sans-serif;
+}
+
+html { scroll-padding-top: 88px; }
+
+body {
+  overflow-x: clip;
+  background: var(--festival-sand);
+}
+
+.festival-2026,
+.festival-footer,
+.festival-cookie-notice,
+.site-header {
+  font-family: var(--festival-body);
+}
+
+.festival-2026 {
+  overflow: clip;
+  background: var(--festival-sand);
+  color: var(--festival-green);
+}
+
+.festival-2026 section[id] { scroll-margin-top: 82px; }
+
+.festival-shell {
+  width: min(1296px, calc(100% - 72px));
+  margin-inline: auto;
+}
+
+.festival-section { padding: 112px 0; }
+
+.festival-2026 h1,
+.festival-2026 h2,
+.festival-2026 h3,
+.festival-footer {
+  font-family: var(--festival-display);
+  font-stretch: condensed;
+}
+
+.festival-2026 h2,
+.festival-2026 h3 { letter-spacing: -0.035em; }
+
+.festival-2026 a:focus-visible,
+.festival-2026 button:focus-visible {
+  outline: 3px solid var(--festival-brown-ink);
+  outline-offset: 4px;
+}
+
+.festival-hero a:focus-visible,
+.festival-hero button:focus-visible,
+.festival-footer a:focus-visible,
+.festival-cookie-notice a:focus-visible,
+.festival-cookie-notice button:focus-visible,
+.site-header a:focus-visible,
+.site-header button:focus-visible {
+  outline: 3px solid var(--festival-cream);
+  outline-offset: 4px;
+}
+
+.festival-section-index {
+  margin: 0 0 18px;
+  color: var(--festival-brown-ink);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.festival-heading {
+  margin-bottom: 62px;
+  display: grid;
+  grid-template-columns: minmax(24px, 1fr) auto minmax(24px, 1fr);
+  align-items: center;
+  gap: 24px;
+}
+
+.festival-heading .festival-section-index {
+  grid-column: 1 / -1;
+  margin-bottom: -3px;
+  text-align: center;
+}
+
+.festival-heading h2 {
+  max-width: 1100px;
+  margin: 0;
+  color: var(--festival-brown-ink);
+  font-size: clamp(3.5rem, 5.55vw, 5rem);
+  font-weight: 900;
+  line-height: 0.96;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.festival-heading-rule {
+  position: relative;
+  height: 3px;
+  background: var(--festival-brown);
+}
+
+.festival-heading-rule:first-of-type::after,
+.festival-heading-rule:last-of-type::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  background: var(--festival-brown);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.festival-heading-rule:first-of-type::after { right: -2px; }
+.festival-heading-rule:last-of-type::before { left: -2px; }
+
+/* Header */
+
+.site-header {
+  position: fixed;
+  z-index: 120;
+  top: 0;
+  right: 0;
+  left: 0;
+  min-height: 82px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  transition: background-color 220ms ease, box-shadow 220ms ease, backdrop-filter 220ms ease;
+}
+
+.site-header.is-scrolled,
+.site-header.has-open-menu {
+  background: rgba(25, 43, 9, 0.94);
+  box-shadow: 0 8px 26px rgba(25, 43, 9, 0.15);
+  backdrop-filter: blur(12px);
+}
+
+.site-header-inner {
+  width: min(1308px, calc(100% - 64px));
+  min-height: 82px;
+  margin-inline: auto;
+  gap: 36px;
+}
+
+.header-brand {
+  position: relative;
+  z-index: 122;
+  flex: 0 0 auto;
+}
+
+.header-brand img {
+  width: 62px;
+  height: 62px;
+  filter: drop-shadow(0 6px 8px rgba(62, 34, 4, 0.24));
+}
+
+.site-navigation {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, auto) 1fr auto;
+  align-items: center;
+  justify-content: end;
+  gap: clamp(20px, 2.35vw, 38px);
+}
+
+.site-navigation > a:not(.header-register) {
+  padding: 12px 0;
+  color: white;
+  font-family: var(--festival-display);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.025em;
+}
+
+.site-navigation > a:not(.header-register)::after {
+  bottom: 4px;
+  height: 2px;
+  background: var(--festival-cream);
+}
+
+.site-navigation .header-register,
+.festival-primary-button {
+  min-height: 50px;
+  padding: 0 27px;
+  border-radius: 999px;
+  background: var(--festival-red);
+  color: white;
+  box-shadow: 0 8px 18px rgba(91, 23, 13, 0.22);
+  font-family: var(--festival-display);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.site-navigation .header-register {
+  grid-column: 6;
+  min-width: 196px;
+}
+
+.site-navigation .header-register:hover,
+.festival-primary-button:hover {
+  background: #b91d17;
+  transform: translateY(-2px);
+}
+
+/* Hero */
+
+.festival-hero {
+  position: relative;
+  min-height: 850px;
+  padding: 82px 0 88px;
+  display: grid;
+  align-items: stretch;
+  isolation: isolate;
+  background: var(--festival-green);
+  color: white;
+}
+
+.festival-hero-background {
+  z-index: -3;
+  object-fit: cover;
+  object-position: 50% 54%;
+  transform: scale(1.03);
+}
+
+.festival-hero-shade {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(25, 43, 9, 0.9) 0%, rgba(25, 43, 9, 0.69) 40%, rgba(25, 43, 9, 0.14) 72%, rgba(25, 43, 9, 0.34) 100%),
+    linear-gradient(180deg, rgba(25, 43, 9, 0.45), transparent 28%, rgba(25, 43, 9, 0.42));
+}
+
+.festival-hero-inner {
+  min-height: 680px;
+  display: grid;
+  grid-template-columns: minmax(0, 0.98fr) minmax(410px, 0.82fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 84px);
+}
+
+.festival-hero-copy {
+  position: relative;
+  z-index: 3;
+  padding: 46px 0 80px;
+}
+
+.festival-eyebrow {
+  margin: 0 0 12px;
+  color: var(--festival-cream);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.festival-hero-brand {
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.festival-hero-logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 11px rgba(44, 21, 2, 0.3));
+}
+
+.festival-hero h1 {
+  margin: 0;
+  color: var(--festival-cream);
+  font-size: clamp(5.8rem, 9.6vw, 9.2rem);
+  font-weight: 900;
+  line-height: 0.75;
+  letter-spacing: -0.07em;
+  text-transform: uppercase;
+  text-shadow: 0 10px 24px rgba(25, 43, 9, 0.24);
+}
+
+.festival-hero h1 span { display: block; color: white; }
+
+.festival-hero-lead {
+  max-width: 585px;
+  margin: 34px 0 28px;
+  color: rgba(255, 249, 239, 0.88);
+  font-size: 1.06rem;
+  font-weight: 700;
+  line-height: 1.52;
+}
+
+.festival-primary-button {
+  min-height: 64px;
+  padding-inline: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 38px;
+  font-size: 0.95rem;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.festival-primary-button span { font-size: 1.25rem; }
+
+.festival-hero-product {
+  position: relative;
+  min-height: 570px;
+  display: grid;
+  place-items: center;
+}
+
+.festival-product-rings,
+.festival-registration-rings {
+  position: absolute;
+  width: min(42vw, 570px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--festival-paper) 0 29%, #e6bf82 29.5% 40%, #f2d59d 40.5% 51%, #fae4c4 51.5% 62%, rgba(255, 233, 190, 0.22) 62.5% 72%, transparent 72.5%);
+  filter: drop-shadow(0 24px 40px rgba(43, 36, 11, 0.19));
+}
+
+.festival-product-pack {
+  position: relative;
+  z-index: 2;
+  width: min(34vw, 455px);
+  height: auto;
+  filter: drop-shadow(0 35px 24px rgba(25, 24, 4, 0.36));
+  transform: rotate(5deg);
+}
+
+.festival-return-label {
+  position: absolute;
+  z-index: 4;
+  top: 18%;
+  right: -2%;
+  min-width: 145px;
+  padding: 18px 22px;
+  display: grid;
+  border: 2px solid var(--festival-cream);
+  border-radius: 999px;
+  background: var(--festival-brown-ink);
+  color: white;
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(7deg);
+  box-shadow: 0 12px 24px rgba(53, 31, 4, 0.25);
+}
+
+.festival-return-label strong { font: 900 1.15rem/1 var(--festival-display); }
+.festival-return-label small { margin-top: 5px; font-size: 0.55rem; letter-spacing: 0.08em; }
+
+.festival-note {
+  position: absolute;
+  z-index: 1;
+  color: var(--festival-cream);
+  font: 900 4.3rem/1 var(--festival-display);
+  opacity: 0.75;
+  pointer-events: none;
+  translate: 0 var(--festival-parallax, 0px);
+}
+
+.festival-note-one { top: 24%; left: 4%; transform: rotate(-17deg); }
+.festival-note-two { right: 4%; bottom: 21%; transform: rotate(14deg); }
+
+.festival-hero-facts {
+  position: absolute;
+  z-index: 5;
+  bottom: 26px;
+  left: 50%;
+  width: min(1034px, calc(100% - 80px));
+  min-height: 58px;
+  margin: 0;
+  padding: 0 26px;
+  display: grid;
+  grid-template-columns: 0.85fr 0.9fr 2fr 1.05fr;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--festival-brown-ink);
+  color: white;
+  transform: translateX(-50%);
+  box-shadow: 0 10px 22px rgba(51, 31, 7, 0.22);
+}
+
+.festival-hero-facts > div {
+  min-width: 0;
+  min-height: 58px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-right: 1px solid rgba(255, 233, 190, 0.3);
+}
+
+.festival-hero-facts > div:last-child { border-right: 0; }
+.festival-hero-facts dt { color: var(--festival-cream); font-weight: 900; }
+.festival-hero-facts dd { margin: 0; overflow: hidden; font-size: 0.78rem; font-weight: 900; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.festival-hero-admission { justify-content: flex-end; }
+.festival-hero-admission dt { font: 900 1.5rem/1 var(--festival-display); }
+
+/* About */
+
+.festival-about {
+  position: relative;
+  background:
+    radial-gradient(circle at 93% 14%, rgba(255, 249, 239, 0.42) 0 2px, transparent 2.4px) 0 0 / 22px 22px,
+    var(--festival-sand);
+}
+
+.festival-about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.1fr);
+  align-items: center;
+  gap: clamp(50px, 7vw, 110px);
+}
+
+.festival-about-copy h2 {
+  margin: 0 0 28px;
+  color: var(--festival-brown-ink);
+  font-size: clamp(4.3rem, 6.15vw, 5.5rem);
+  font-weight: 900;
+  line-height: 0.91;
+  text-transform: uppercase;
+}
+
+.festival-about-copy > p:not(.festival-section-index) {
+  max-width: 650px;
+  color: var(--festival-green);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.festival-about-copy .festival-about-intro {
+  font-size: 1.35rem;
+  line-height: 1.42;
+}
+
+.festival-about-location {
+  margin-top: 34px;
+  padding-top: 22px;
+  display: flex;
+  align-items: start;
+  gap: 14px;
+  border-top: 2px solid rgba(188, 122, 38, 0.42);
+  color: var(--festival-brown-ink);
+}
+
+.festival-about-location p {
+  margin: 0;
+  display: grid;
+  gap: 5px;
+  color: var(--festival-green);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.festival-about-location strong { font-size: 1rem; }
+
+.festival-about-visual {
+  position: relative;
+  min-height: 590px;
+  overflow: hidden;
+  border: 3px solid var(--festival-brown);
+  border-radius: 260px 260px 18px 18px;
+  background: var(--festival-cream);
+  box-shadow: 0 25px 55px rgba(75, 43, 7, 0.18);
+  translate: 0 var(--festival-parallax, 0px);
+}
+
+.festival-about-still-life { object-fit: cover; object-position: 55% center; }
+
+.festival-about-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(25, 43, 9, 0.4));
+}
+
+.festival-about-product {
+  position: absolute;
+  z-index: 2;
+  right: -2%;
+  bottom: -13%;
+  width: 58%;
+}
+
+.festival-about-product img { width: 100%; height: auto; transform: rotate(7deg); filter: drop-shadow(0 24px 22px rgba(39, 29, 6, 0.28)); }
+
+.festival-about-badge {
+  position: absolute;
+  z-index: 3;
+  right: 10%;
+  top: 16%;
+  width: 126px;
+  aspect-ratio: 1;
+  display: grid;
+  place-content: center;
+  border: 3px solid var(--festival-cream);
+  border-radius: 50%;
+  background: var(--festival-brown-ink);
+  color: white;
+  font: 900 1.3rem/.9 var(--festival-display);
+  text-align: center;
+  text-transform: uppercase;
+  transform: rotate(8deg);
+}
+
+.festival-feature-grid {
+  margin-top: 46px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.festival-feature-grid > article {
+  min-height: 210px;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--festival-brown);
+  border-radius: 16px;
+  background: var(--festival-cream);
+}
+
+.festival-feature-grid > article:nth-child(even) {
+  background: var(--festival-paper);
+}
+
+.festival-feature-grid > article > span {
+  color: var(--festival-brown-ink);
+  font-size: 0.65rem;
+  font-weight: 900;
+}
+
+.festival-feature-grid h3 {
+  margin: auto 0 10px;
+  color: var(--festival-green);
+  font-size: clamp(1.65rem, 2.5vw, 2.25rem);
+  font-weight: 900;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.festival-feature-grid p {
+  margin: 0;
+  color: var(--festival-green);
+  font-size: 0.84rem;
+  font-weight: 650;
+  line-height: 1.5;
+}
+
+.festival-feature-photo {
+  position: relative;
+  grid-column: 1 / -1;
+  min-height: 330px;
+  margin: 0;
+  overflow: hidden;
+  border: 2px solid var(--festival-brown);
+  border-radius: 16px;
+  background: var(--festival-green);
+}
+
+.festival-feature-photo img {
+  object-fit: cover;
+}
+
+.festival-feature-photo::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 48%, rgba(25, 43, 9, 0.72));
+}
+
+.festival-feature-photo figcaption {
+  position: absolute;
+  z-index: 2;
+  right: 24px;
+  bottom: 22px;
+  left: 24px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  color: var(--festival-cream);
+  font: 900 0.8rem/1.3 var(--festival-display);
+  text-transform: uppercase;
+}
+
+.festival-feature-photo figcaption strong {
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+}
+
+/* Artists */
+
+.festival-artists {
+  position: relative;
+  padding-bottom: 146px;
+  background: var(--festival-sand);
+}
+
+.festival-artist-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 26px 22px;
+  align-items: end;
+}
+
+.festival-artist-card { min-width: 0; }
+.festival-artist-card-1 { grid-column: 2 / span 5; }
+.festival-artist-card-2 { grid-column: 7 / span 5; }
+.festival-artist-card-3 { grid-column: 1 / span 4; }
+.festival-artist-card-4 { grid-column: 5 / span 4; }
+.festival-artist-card-5 { grid-column: 9 / span 4; }
+
+.festival-artist-card:nth-child(n + 6) { grid-column: 4 / span 6; }
+
+.festival-artist-image {
+  position: relative;
+  min-height: 310px;
+  overflow: hidden;
+  border: 3px solid var(--festival-brown);
+  border-radius: 18px 18px 56% 56% / 18px 18px 18% 18%;
+  background: var(--festival-green);
+  box-shadow: 0 18px 36px rgba(78, 43, 7, 0.16);
+}
+
+.festival-artist-card-1 .festival-artist-image,
+.festival-artist-card-2 .festival-artist-image { min-height: 410px; }
+
+.festival-artist-image::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 45%, rgba(25, 43, 9, 0.42));
+}
+
+.festival-artist-image img {
+  object-fit: cover;
+  filter: saturate(0.92) contrast(1.04);
+  transition: transform 500ms ease, filter 500ms ease;
+}
+
+.festival-artist-name {
+  position: relative;
+  z-index: 2;
+  width: calc(100% - 42px);
+  min-height: 62px;
+  margin: -31px auto 0;
+  padding: 11px 23px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-radius: 999px;
+  background: var(--festival-brown-ink);
+  color: var(--festival-cream);
+  box-shadow: 0 9px 19px rgba(76, 42, 4, 0.2);
+}
+
+.festival-artist-name h3 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.25vw, 2rem);
+  font-weight: 900;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.festival-artist-name > span {
+  flex: 0 0 auto;
+  color: white;
+  font-size: 0.64rem;
+  font-weight: 900;
+}
+
+.festival-music-ribbon {
+  position: absolute;
+  right: -2%;
+  bottom: 39px;
+  left: -2%;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--festival-green);
+  color: var(--festival-cream);
+  transform: rotate(-1deg);
+}
+
+.festival-music-ribbon span {
+  width: max-content;
+  white-space: nowrap;
+  font: 900 clamp(1.45rem, 2.6vw, 2.5rem)/1 var(--festival-display);
+  letter-spacing: 0.02em;
+  animation: festivalMarquee 25s linear infinite;
+}
+
+/* Zones and record */
+
+.festival-zones {
+  position: relative;
+  background:
+    radial-gradient(circle at 8% 25%, rgba(255, 233, 190, 0.58), transparent 23rem),
+    radial-gradient(circle at 92% 78%, rgba(188, 122, 38, 0.16), transparent 26rem),
+    var(--festival-sand);
+}
+
+.festival-record {
+  overflow: hidden;
+  border: 3px solid var(--festival-green);
+  border-radius: 17px;
+  background: var(--festival-green);
+  box-shadow: 0 24px 50px rgba(57, 35, 8, 0.2);
+}
+
+.festival-record-image {
+  position: relative;
+  min-height: 500px;
+  overflow: hidden;
+  background: #9d7c4b;
+}
+
+.festival-record-image img {
+  object-fit: cover;
+  object-position: 50% 54%;
+  transition: transform 650ms ease;
+}
+
+.festival-record-copy {
+  min-height: 205px;
+  padding: 38px 44px 42px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 28px;
+  color: var(--festival-paper);
+}
+
+.festival-record-number {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--festival-cream);
+  border-radius: 50%;
+  color: var(--festival-cream);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.festival-record-copy h3 {
+  margin: 0 0 15px;
+  color: var(--festival-paper);
+  font-size: clamp(3.2rem, 5vw, 4.4rem);
+  font-weight: 900;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.festival-record-copy p {
+  max-width: 960px;
+  margin: 0;
+  color: rgba(255, 249, 239, 0.84);
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
+
+.festival-zone-pills {
+  margin-top: 22px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.festival-zone-pills article {
+  min-height: 90px;
+  padding: 16px 23px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  border: 2px solid var(--festival-brown);
+  border-radius: 999px;
+  background: var(--festival-brown-ink);
+  color: var(--festival-cream);
+  transition: transform 190ms ease, background-color 190ms ease, color 190ms ease;
+}
+
+.festival-zone-pills article > span:first-child {
+  color: rgba(255, 233, 190, 0.7);
+  font-size: 0.6rem;
+  font-weight: 900;
+}
+
+.festival-zone-pills h3 {
+  margin: 0;
+  font-size: clamp(1.25rem, 2.2vw, 1.85rem);
+  font-weight: 900;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.festival-zone-symbol { font-size: 1.65rem; }
+
+/* Program */
+
+.festival-program {
+  position: relative;
+  isolation: isolate;
+  background: var(--festival-sand);
+}
+
+.festival-program-pack {
+  position: absolute;
+  z-index: -1;
+  opacity: 0.9;
+  pointer-events: none;
+  translate: 0 var(--festival-parallax, 0px);
+}
+
+.festival-program-pack img { width: 100%; height: auto; filter: drop-shadow(0 20px 18px rgba(54, 36, 7, 0.18)); }
+.festival-program-pack-left { top: 24%; left: -60px; width: 180px; transform: rotate(-17deg); }
+.festival-program-pack-right { right: -55px; bottom: 22%; width: 205px; transform: rotate(14deg); }
+
+.festival-program-meta {
+  width: fit-content;
+  margin: 0 auto 45px;
+  padding: 15px 28px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  border: 2px solid var(--festival-brown);
+  border-radius: 999px;
+  color: var(--festival-green);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.festival-program-meta > * + *::before {
+  content: "●";
+  margin-right: 18px;
+  color: var(--festival-brown);
+}
+
+.festival-timeline {
+  width: min(1100px, 100%);
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.festival-timeline li {
+  position: relative;
+  min-height: 150px;
+  display: grid;
+  grid-template-columns: 280px 52px 1fr;
+  align-items: start;
+  border-top: 2px solid var(--festival-brown);
+}
+
+.festival-timeline li:last-child { border-bottom: 2px solid var(--festival-brown); }
+
+.festival-timeline > li > time {
+  padding: 38px 32px 30px 0;
+  color: var(--festival-green);
+  font: 900 clamp(1.45rem, 2.45vw, 2.2rem)/1 var(--festival-display);
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.festival-timeline-marker {
+  position: relative;
+  align-self: stretch;
+  display: grid;
+  place-items: start center;
+  border-left: 2px solid var(--festival-brown);
+}
+
+.festival-timeline-marker::before {
+  content: "";
+  position: absolute;
+  top: 31px;
+  left: -13px;
+  width: 22px;
+  height: 22px;
+  border: 3px solid var(--festival-brown);
+  border-radius: 50%;
+  background: var(--festival-sand);
+}
+
+.festival-timeline-marker i {
+  position: absolute;
+  z-index: 2;
+  top: 39px;
+  left: -5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--festival-green);
+}
+
+.festival-timeline-copy { padding: 27px 0 30px 28px; }
+
+.festival-timeline-copy h3 {
+  margin: 0 0 8px;
+  color: var(--festival-brown-ink);
+  font-size: clamp(2rem, 3.4vw, 3.15rem);
+  font-weight: 900;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.festival-timeline-copy p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--festival-green);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.42;
+}
+
+.festival-timeline-copy small {
+  margin-top: 8px;
+  display: block;
+  color: rgba(25, 43, 9, 0.62);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Registration */
+
+.festival-registration {
+  padding-block: 104px 116px;
+  background:
+    radial-gradient(circle at 18% 52%, rgba(255, 249, 239, 0.62), transparent 27rem),
+    var(--festival-sand);
+}
+
+.festival-registration-grid {
+  min-height: 680px;
+  display: grid;
+  grid-template-columns: minmax(420px, 0.95fr) minmax(460px, 0.85fr);
+  align-items: center;
+  gap: clamp(60px, 9vw, 130px);
+}
+
+.festival-registration-product {
+  position: relative;
+  min-height: 620px;
+  display: grid;
+  place-items: center;
+}
+
+.festival-registration-rings { width: min(46vw, 600px); }
+
+.festival-registration-product img {
+  position: relative;
+  z-index: 2;
+  width: min(39vw, 500px);
+  height: auto;
+  filter: drop-shadow(0 32px 25px rgba(63, 39, 5, 0.27));
+  transform: rotate(6deg);
+}
+
+.festival-registration-content h2 {
+  margin: 0 0 22px;
+  color: var(--festival-brown-ink);
+  font-size: clamp(2.7rem, 4.15vw, 3.75rem);
+  font-weight: 900;
+  line-height: 0.94;
+  text-transform: uppercase;
+}
+
+.festival-registration-content > p:not(.festival-section-index) {
+  max-width: 580px;
+  margin-bottom: 24px;
+  color: var(--festival-green);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.52;
+}
+
+.festival-registration-facts {
+  margin-bottom: 25px;
+  padding: 13px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 22px;
+  border-block: 1px solid rgba(188, 122, 38, 0.48);
+  color: var(--festival-green);
+  font-size: 0.67rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.festival-registration-facts span + span::before {
+  content: "●";
+  margin-right: 20px;
+  color: var(--festival-brown);
+}
+
+.festival-calendar-link {
+  min-height: 44px;
+  margin: -10px 0 24px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 1px solid var(--festival-brown);
+  border-radius: 999px;
+  color: var(--festival-brown-ink);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.festival-calendar-link:hover {
+  background: var(--festival-brown-ink);
+  color: var(--festival-paper);
+  transform: translateY(-2px);
+}
+
+.festival-registration-form .registration-form { width: 100%; max-width: 532px; }
+.festival-registration-form .registration-form .form-field { margin-bottom: 14px; }
+.festival-registration-form .registration-form .form-field label { margin: 0 0 7px; color: #625329; font-size: 0.66rem; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+.festival-registration-form .registration-form .form-field input,
+.festival-registration-form .registration-form .form-field select {
+  min-height: 52px;
+  border: 1px solid #b9ae8f;
+  border-radius: 5px;
+  background: var(--festival-paper);
+  color: var(--festival-green);
+  font-size: 0.88rem;
+}
+
+.festival-registration-form .registration-form .consent-row { grid-template-columns: 23px 1fr; gap: 9px; }
+.festival-registration-form .registration-form .consent-row input { width: 23px; height: 23px; accent-color: var(--festival-brown); }
+.festival-registration-form .registration-form .consent-row label { color: #625329; font-size: 0.68rem; line-height: 1.45; }
+.festival-registration-form .registration-form .form-submit {
+  min-height: 65px;
+  margin-top: 23px;
+  border-radius: 999px;
+  background: var(--festival-red);
+  color: white;
+  font: 900 0.95rem/1 var(--festival-display);
+  letter-spacing: 0.05em;
+  box-shadow: 0 11px 22px rgba(88, 28, 11, 0.18);
+}
+
+.festival-registration-form .registration-form .form-submit:hover { background: #b91d17; }
+
+.festival-registration-form .registration-form input:focus-visible,
+.festival-registration-form .registration-form select:focus-visible {
+  outline: 3px solid var(--festival-brown-ink);
+  outline-offset: 2px;
+}
+
+/* Footer and cookie notice */
+
+.festival-footer {
+  padding: 30px 0 24px;
+  background: var(--festival-brown-ink);
+  color: var(--festival-cream);
+}
+
+.festival-footer-inner {
+  display: grid;
+  grid-template-columns: auto auto minmax(210px, 0.78fr) minmax(320px, 1.22fr);
+  align-items: center;
+  gap: 24px 38px;
+}
+
+.festival-footer-inner > img { filter: drop-shadow(0 7px 9px rgba(69, 34, 5, 0.22)); }
+
+.festival-footer-socials { display: flex; gap: 13px; }
+
+.festival-footer-socials a {
+  width: 47px;
+  height: 47px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--festival-cream);
+  border-radius: 50%;
+  color: var(--festival-cream);
+  font-size: 0.7rem;
+  font-weight: 900;
+  transition: background-color 170ms ease, color 170ms ease, transform 170ms ease;
+}
+
+.festival-footer-facts {
+  display: grid;
+  gap: 5px;
+  color: var(--festival-cream);
+  font: 800 0.74rem/1.35 var(--festival-display);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.festival-footer-facts strong {
+  color: white;
+  font-size: 0.86rem;
+}
+
+.festival-footer-license {
+  margin: 0;
+  color: var(--festival-cream);
+  font: 800 0.72rem/1.45 var(--festival-display);
+  letter-spacing: 0.015em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.festival-footer-links {
+  grid-column: 1 / -1;
+  padding-top: 17px;
+  display: flex;
+  justify-content: center;
+  gap: 15px 32px;
+  border-top: 1px solid rgba(255, 233, 190, 0.42);
+  color: rgba(255, 233, 190, 0.82);
+  font-size: 0.67rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.festival-footer a:hover { color: white; }
+
+.festival-cookie-notice {
+  position: fixed;
+  z-index: 150;
+  right: 16px;
+  bottom: 16px;
+  left: 16px;
+  width: min(900px, calc(100% - 32px));
+  margin-inline: auto;
+  padding: 12px 13px 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  border: 1px solid rgba(255, 233, 190, 0.48);
+  border-radius: 9px;
+  background: rgba(25, 43, 9, 0.96);
+  color: var(--festival-cream);
+  box-shadow: 0 12px 32px rgba(25, 43, 9, 0.26);
+  backdrop-filter: blur(12px);
+}
+
+.festival-cookie-notice p { margin: 0; font-size: 0.69rem; font-weight: 750; line-height: 1.4; text-transform: uppercase; }
+.festival-cookie-notice a { text-decoration: underline; text-underline-offset: 3px; }
+.festival-cookie-notice button {
+  min-width: 48px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--festival-paper);
+  color: var(--festival-green);
+  font-weight: 900;
+  cursor: pointer;
+}
+
+/* Motion */
+
+.festival-motion-ready [data-reveal] {
+  opacity: 0;
+  transform: translate3d(0, 34px, 0);
+  transition:
+    opacity 650ms cubic-bezier(0.2, 0.75, 0.25, 1),
+    transform 650ms cubic-bezier(0.2, 0.75, 0.25, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.festival-motion-ready [data-reveal].is-visible { opacity: 1; transform: translate3d(0, 0, 0); }
+
+[data-hero-entrance] { animation: festivalHeroEntrance 850ms 100ms both cubic-bezier(0.16, 0.82, 0.23, 1); }
+.festival-floating-pack { animation: festivalPackFloat 5.8s ease-in-out infinite; }
+.festival-note-one { animation: festivalNoteFloat 5.2s ease-in-out infinite; }
+.festival-note-two { animation: festivalNoteFloat 6.4s 800ms ease-in-out infinite reverse; }
+
+@keyframes festivalHeroEntrance {
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes festivalPackFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -10px; }
+}
+
+@keyframes festivalNoteFloat {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -12px; }
+}
+
+@keyframes festivalMarquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .festival-artist-card:hover .festival-artist-image img { transform: scale(1.045); filter: saturate(1.05) contrast(1.06); }
+  .festival-record:hover .festival-record-image img { transform: scale(1.025); }
+  .festival-zone-pills article:hover { background: var(--festival-green); color: var(--festival-paper); transform: translateY(-4px); }
+  .festival-footer-socials a:hover { background: var(--festival-cream); color: var(--festival-brown-ink); transform: translateY(-2px); }
+}
+
+/* Small desktop / tablet landscape */
+
+@media (max-width: 1180px) {
+  .festival-shell { width: min(1040px, calc(100% - 56px)); }
+  .site-header-inner { width: calc(100% - 44px); }
+  .site-navigation { gap: 20px; }
+  .site-navigation .header-register { min-width: 178px; padding-inline: 20px; }
+  .festival-hero-inner { grid-template-columns: minmax(0, 1fr) minmax(360px, 0.78fr); gap: 22px; }
+  .festival-hero h1 { font-size: clamp(5.5rem, 10.7vw, 7.6rem); }
+  .festival-return-label { right: 0; }
+  .festival-about-grid { grid-template-columns: minmax(0, 0.95fr) minmax(390px, 1.05fr); gap: 52px; }
+  .festival-about-visual { min-height: 530px; }
+  .festival-artist-card-1 .festival-artist-image,
+  .festival-artist-card-2 .festival-artist-image { min-height: 360px; }
+  .festival-artist-image { min-height: 275px; }
+  .festival-zone-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .festival-program-pack { opacity: 0.35; }
+  .festival-timeline { width: min(930px, 100%); }
+  .festival-timeline li { grid-template-columns: 235px 46px 1fr; }
+  .festival-registration-grid { grid-template-columns: minmax(360px, 0.85fr) minmax(430px, 1fr); gap: 55px; }
+  .festival-footer-inner { grid-template-columns: auto 1fr; }
+  .festival-footer-facts,
+  .festival-footer-license { grid-column: 1 / -1; text-align: left; }
+}
+
+/* Tablet and mobile navigation */
+
+@media (max-width: 960px) {
+  html { scroll-padding-top: 72px; }
+  .festival-2026 section[id] { scroll-margin-top: 70px; }
+  .festival-shell { width: calc(100% - 40px); }
+  .festival-section { padding: 82px 0; }
+  .site-header, .site-header-inner { min-height: 72px; }
+  .site-header-inner { width: calc(100% - 32px); }
+  .header-brand img { width: 54px; height: 54px; }
+  .menu-toggle {
+    position: relative;
+    z-index: 123;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    display: grid;
+    place-content: center;
+    gap: 7px;
+    border: 2px solid var(--festival-cream);
+    border-radius: 50%;
+    background: var(--festival-green);
+    cursor: pointer;
+  }
+  .menu-toggle span { width: 21px; height: 2px; background: white; transition: transform 180ms ease; }
+  .menu-toggle[aria-expanded='true'] span:first-child { transform: translateY(4.5px) rotate(45deg); }
+  .menu-toggle[aria-expanded='true'] span:last-child { transform: translateY(-4.5px) rotate(-45deg); }
+  .site-navigation {
+    position: fixed;
+    z-index: 121;
+    inset: 0;
+    width: 100%;
+    padding: 112px 28px 42px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 0;
+    visibility: hidden;
+    background:
+      radial-gradient(circle at 88% 17%, rgba(255, 233, 190, 0.16), transparent 15rem),
+      var(--festival-green);
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: opacity 180ms ease, transform 180ms ease, visibility 180ms;
+  }
+  .site-navigation.is-open { visibility: visible; opacity: 1; transform: translateY(0); }
+  .site-navigation > a:not(.header-register) {
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(255, 233, 190, 0.24);
+    color: var(--festival-cream);
+    font: 900 clamp(2.1rem, 8.5vw, 4.4rem)/0.9 var(--festival-display);
+    letter-spacing: -0.03em;
+  }
+  .site-navigation > a:not(.header-register)::after { display: none; }
+  .site-navigation .header-register { min-height: 58px; margin-top: 24px; }
+  .festival-hero { min-height: auto; padding: 72px 0 0; }
+  .festival-hero-shade {
+    background:
+      linear-gradient(180deg, rgba(25, 43, 9, 0.85), rgba(25, 43, 9, 0.4) 49%, rgba(25, 43, 9, 0.85)),
+      linear-gradient(90deg, rgba(25, 43, 9, 0.48), transparent);
+  }
+  .festival-hero-inner { min-height: 0; padding: 34px 0 20px; grid-template-columns: 1fr; gap: 0; }
+  .festival-hero-copy { padding: 30px 0 6px; }
+  .festival-hero h1 { max-width: 690px; font-size: clamp(5.2rem, 16vw, 8rem); }
+  .festival-hero-lead { max-width: 620px; }
+  .festival-hero-product { min-height: 520px; }
+  .festival-product-rings { width: min(78vw, 540px); }
+  .festival-product-pack { width: min(57vw, 410px); }
+  .festival-return-label { top: 13%; right: 10%; }
+  .festival-hero-facts {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    width: calc(100% - 40px);
+    margin: 0 auto 22px;
+    padding: 0;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 20px;
+    transform: none;
+  }
+  .festival-hero-facts > div { padding: 0 18px; border-bottom: 1px solid rgba(255, 233, 190, 0.3); }
+  .festival-hero-facts > div:nth-child(2) { border-right: 0; }
+  .festival-hero-facts > div:nth-child(n + 3) { border-bottom: 0; }
+  .festival-hero-location { grid-column: 1 / -1; border-right: 0 !important; }
+  .festival-hero-admission { grid-column: 1 / -1; justify-content: flex-start; }
+  .festival-hero-admission dd { white-space: normal; }
+  .festival-about-grid { grid-template-columns: 1fr; gap: 48px; }
+  .festival-about-copy h2 { max-width: 680px; }
+  .festival-about-visual { min-height: 540px; border-radius: 220px 220px 16px 16px; }
+  .festival-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .festival-heading { margin-bottom: 46px; gap: 15px; }
+  .festival-heading h2 { font-size: clamp(3.2rem, 9vw, 5rem); }
+  .festival-artist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
+  .festival-artist-card,
+  .festival-artist-card-1,
+  .festival-artist-card-2,
+  .festival-artist-card-3,
+  .festival-artist-card-4,
+  .festival-artist-card-5,
+  .festival-artist-card:nth-child(n + 6) { grid-column: auto; }
+  .festival-artist-image,
+  .festival-artist-card-1 .festival-artist-image,
+  .festival-artist-card-2 .festival-artist-image { min-height: 330px; }
+  .festival-artist-name { width: calc(100% - 24px); min-height: 56px; padding-inline: 17px; }
+  .festival-artist-name h3 { font-size: 1.35rem; }
+  .festival-record-image { min-height: 420px; }
+  .festival-record-copy { min-height: 0; padding: 30px; }
+  .festival-record-copy h3 { font-size: clamp(2.8rem, 8vw, 4rem); }
+  .festival-zone-pills { grid-template-columns: 1fr 1fr; }
+  .festival-zone-pills article { padding-inline: 18px; }
+  .festival-program-pack { display: none; }
+  .festival-timeline { width: 100%; }
+  .festival-timeline li { grid-template-columns: 190px 42px 1fr; }
+  .festival-timeline > li > time { padding-right: 20px; font-size: 1.5rem; }
+  .festival-timeline-copy { padding-left: 20px; }
+  .festival-registration-grid { min-height: 0; grid-template-columns: 1fr; gap: 40px; }
+  .festival-registration-product { min-height: 520px; }
+  .festival-registration-rings { width: min(78vw, 540px); }
+  .festival-registration-product img { width: min(58vw, 400px); }
+  .festival-registration-content { width: min(620px, 100%); margin-inline: auto; }
+  .festival-footer-inner { grid-template-columns: auto 1fr; }
+  .festival-footer-facts { grid-column: 1 / -1; text-align: left; }
+  .festival-footer-license { grid-column: 1 / -1; text-align: left; }
+}
+
+/* Phones */
+
+@media (max-width: 560px) {
+  .festival-shell { width: calc(100% - 28px); }
+  .festival-section { padding: 68px 0; }
+  .festival-heading { margin-bottom: 38px; grid-template-columns: 28px 1fr 28px; gap: 9px; }
+  .festival-heading .festival-section-index { margin-bottom: 0; }
+  .festival-heading h2 { font-size: clamp(2.55rem, 12.7vw, 4.1rem); line-height: 0.92; }
+  .festival-heading-rule { height: 2px; }
+  .festival-hero-inner { padding-top: 20px; }
+  .festival-hero-copy { padding-top: 26px; }
+  .festival-eyebrow { font-size: 0.58rem; }
+  .festival-hero-logo { width: 62px; height: 62px; }
+  .festival-hero h1 { font-size: clamp(4.1rem, 19vw, 6rem); line-height: 0.78; }
+  .festival-hero-lead { margin-top: 25px; font-size: 0.92rem; }
+  .festival-primary-button { width: 100%; min-height: 58px; padding-inline: 24px; font-size: 0.82rem; }
+  .festival-hero-product { min-height: 410px; margin-inline: -7px; }
+  .festival-product-rings { width: min(94vw, 410px); }
+  .festival-product-pack { width: min(72vw, 320px); }
+  .festival-return-label { right: 0; min-width: 108px; padding: 13px 15px; }
+  .festival-return-label strong { font-size: 0.9rem; }
+  .festival-hero-facts { width: calc(100% - 28px); grid-template-columns: 1fr 1fr; }
+  .festival-hero-facts > div { min-height: 62px; padding: 0 12px; gap: 7px; }
+  .festival-hero-facts dd { font-size: 0.66rem; }
+  .festival-hero-location, .festival-hero-admission { grid-column: 1 / -1; }
+  .festival-note { display: none; }
+  .festival-about-copy h2 { font-size: clamp(3.1rem, 14.5vw, 4.65rem); }
+  .festival-about-copy .festival-about-intro { font-size: 1.08rem; }
+  .festival-about-copy > p:not(.festival-section-index) { font-size: 0.9rem; }
+  .festival-about-visual { min-height: 440px; border-radius: 130px 130px 12px 12px; }
+  .festival-about-product { width: 72%; right: -11%; bottom: -8%; }
+  .festival-about-badge { top: 12%; right: 7%; width: 98px; font-size: 1rem; }
+  .festival-feature-grid { grid-template-columns: 1fr; }
+  .festival-feature-grid > article { min-height: 180px; }
+  .festival-feature-photo { min-height: 280px; }
+  .festival-feature-photo figcaption { right: 18px; bottom: 17px; left: 18px; align-items: start; flex-direction: column; gap: 5px; }
+  .festival-artists { padding-bottom: 130px; }
+  .festival-artist-grid { grid-template-columns: 1fr; gap: 25px; }
+  .festival-artist-image,
+  .festival-artist-card-1 .festival-artist-image,
+  .festival-artist-card-2 .festival-artist-image { min-height: min(108vw, 420px); }
+  .festival-artist-name { min-height: 60px; padding-inline: 19px; }
+  .festival-artist-name h3 { font-size: 1.5rem; }
+  .festival-music-ribbon { height: 58px; }
+  .festival-record { border-width: 2px; border-radius: 12px; }
+  .festival-record-image { min-height: 285px; }
+  .festival-record-copy { padding: 24px 20px 27px; grid-template-columns: 1fr; gap: 16px; }
+  .festival-record-number { width: 42px; height: 42px; }
+  .festival-record-copy h3 { margin-bottom: 12px; font-size: clamp(2.6rem, 13vw, 3.8rem); }
+  .festival-record-copy p { font-size: 0.9rem; }
+  .festival-zone-pills { grid-template-columns: 1fr; gap: 10px; }
+  .festival-zone-pills article { min-height: 72px; padding: 12px 18px; }
+  .festival-zone-pills h3 { font-size: 1.45rem; }
+  .festival-program-meta { width: 100%; padding: 14px 17px; justify-content: center; flex-wrap: wrap; gap: 8px 13px; font-size: 0.62rem; }
+  .festival-program-meta > * + *::before { margin-right: 13px; }
+  .festival-timeline { padding-left: 15px; }
+  .festival-timeline li {
+    min-height: 0;
+    padding: 25px 0 27px 28px;
+    display: block;
+    border-top: 1px solid rgba(188, 122, 38, 0.72);
+    border-left: 2px solid var(--festival-brown);
+  }
+  .festival-timeline li:last-child { border-bottom-width: 1px; }
+  .festival-timeline > li > time { padding: 0; display: block; color: var(--festival-green); font-size: 1.3rem; white-space: normal; }
+  .festival-timeline-marker { position: absolute; top: 25px; left: -1px; display: block; border: 0; }
+  .festival-timeline-marker::before { top: 0; left: -11px; width: 18px; height: 18px; background: var(--festival-sand); }
+  .festival-timeline-marker i { top: 7px; left: -4px; width: 6px; height: 6px; }
+  .festival-timeline-copy { padding: 13px 0 0; }
+  .festival-timeline-copy h3 { font-size: clamp(1.8rem, 9vw, 2.6rem); }
+  .festival-timeline-copy p { font-size: 0.86rem; }
+  .festival-registration { padding-block: 68px 78px; }
+  .festival-registration-product { min-height: 410px; }
+  .festival-registration-rings { width: min(94vw, 420px); }
+  .festival-registration-product img { width: min(71vw, 320px); }
+  .festival-registration-content h2 { font-size: clamp(2.45rem, 12vw, 3.7rem); }
+  .festival-registration-content > p:not(.festival-section-index) { font-size: 0.9rem; }
+  .festival-registration-facts { display: grid; gap: 9px; }
+  .festival-registration-facts span + span::before { margin-right: 10px; }
+  .festival-footer { padding-block: 27px 22px; }
+  .festival-footer-inner { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .festival-footer-facts { text-align: center; }
+  .festival-footer-license { text-align: center; font-size: 0.64rem; }
+  .festival-footer-links { flex-direction: column; align-items: center; gap: 10px; }
+  .festival-cookie-notice { right: 10px; bottom: 10px; left: 10px; width: calc(100% - 20px); padding: 14px; align-items: stretch; flex-direction: column; gap: 10px; }
+  .festival-cookie-notice button { width: 100%; }
+}
+
+@media (max-width: 360px) {
+  .festival-shell { width: calc(100% - 22px); }
+  .site-header-inner { width: calc(100% - 24px); }
+  .festival-hero h1 { font-size: clamp(3.65rem, 19.5vw, 4.4rem); }
+  .festival-hero-product { min-height: 365px; }
+  .festival-primary-button { gap: 18px; }
+  .festival-about-visual { min-height: 390px; }
+  .festival-artist-name { width: calc(100% - 14px); }
+  .festival-zone-pills h3 { font-size: 1.25rem; }
+  .festival-registration-form .registration-form .consent-row label { font-size: 0.63rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .festival-2026 *,
+  .festival-2026 *::before,
+  .festival-2026 *::after,
+  .festival-footer *,
+  .festival-cookie-notice,
+  .site-header * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .festival-motion-ready [data-reveal] { opacity: 1; transform: none; }
+  [data-parallax] { translate: 0 0 !important; }
+}

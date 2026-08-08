@@ -1,19 +1,125 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { cache, type CSSProperties } from "react";
+import { CookieConsent } from "@/components/cookie-consent";
+import { FestivalMotion } from "@/components/festival-motion";
 import { RegistrationForm } from "@/components/registration-form";
 import { SiteHeader } from "@/components/site-header";
+import { TrackedCalendarLink } from "@/components/tracked-calendar-link";
 import {
   artists,
   festival as campaignFestival,
+  festivalRecord,
   zones,
 } from "@/content/festival";
+import type { ProgramContentItem } from "@/content/site-content";
 import { getSiteContent } from "@/db";
+import { buildFestivalCalendarUrl } from "@/lib/festival-calendar";
 
 export const dynamic = "force-dynamic";
 
+const loadSiteContent = cache(getSiteContent);
+
+const artistFallbackImages = [
+  "/images/evening-concert.webp",
+  "/images/hero-festival.webp",
+  "/images/craft-workshop.webp",
+] as const;
+
+function compactDate(value: string) {
+  return value.replace(/\s+\d{4}\s*$/u, "").trim();
+}
+
+function compactPlace(value: string) {
+  return value
+    .replace(/^верхняя площадка\s+/iu, "")
+    .replace(/^стадиона(?=\s|$)/iu, "Стадион")
+    .trim();
+}
+
+function compactAddress(value: string) {
+  return value
+    .replace(/^минск,?\s*/iu, "")
+    .replace(/,?\s*корпус\s*/iu, "/")
+    .trim();
+}
+
+function normalizeArtistName(value: string) {
+  return value
+    .toLocaleLowerCase("ru")
+    .replaceAll("ё", "е")
+    .replace(/[«»“”„'’()]/gu, " ")
+    .replace(/[^a-zа-я0-9]+/giu, " ")
+    .trim();
+}
+
+function artistTime(artist: string, program: ProgramContentItem[]) {
+  const ignored = new Set([
+    "выступление",
+    "группы",
+    "группа",
+    "кавер",
+    "бэнд",
+    "band",
+  ]);
+  const artistTokens = normalizeArtistName(artist)
+    .split(" ")
+    .filter((token) => token.length > 3 && !ignored.has(token));
+  const matchingItem = program.find((item) => {
+    const title = normalizeArtistName(item.title);
+    return artistTokens.some((token) => title.includes(token));
+  });
+
+  return matchingItem?.time ?? "В течение дня";
+}
+
+function revealStyle(index: number) {
+  return {
+    "--reveal-delay": `${Math.min(index, 6) * 70}ms`,
+  } as CSSProperties;
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { festival } = await loadSiteContent();
+  const dateShort = compactDate(festival.date);
+  const placeShort = compactPlace(festival.place);
+  const description = `${festival.date}, ${festival.time}. ${festival.place}, ${festival.address}. ${campaignFestival.admission}.`;
+
+  return {
+    title: `${festival.name} — ${dateShort}, ${placeShort}`,
+    description,
+    openGraph: {
+      title: festival.name,
+      description,
+      type: "website",
+      locale: "ru_RU",
+      images: [
+        {
+          url: "/og.png",
+          width: 1200,
+          height: 630,
+          alt: `${festival.name} — ${dateShort}, ${placeShort}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: festival.name,
+      description,
+      images: ["/og.png"],
+    },
+  };
+}
+
 export default async function Home() {
-  const { festival, gallery, heroImage, program, programImage } =
-    await getSiteContent();
+  const content = await loadSiteContent();
+  const { festival, gallery, heroImage, program, programImage } = content;
+  const dateShort = compactDate(festival.date);
+  const placeShort = compactPlace(festival.place);
+  const addressShort = compactAddress(festival.address);
+  const city = festival.address.split(",")[0]?.trim() || "Минск";
+  const featureImage = gallery.at(-1);
 
   return (
     <>
@@ -22,242 +128,288 @@ export default async function Home() {
       </a>
       <SiteHeader />
 
-      <main className="campaign-page" id="main-content">
-        <section className="campaign-hero" id="top" aria-labelledby="hero-title">
-          <div className="hero-paper-texture" aria-hidden="true" />
-          <div className="hero-content shell">
-            <div className="hero-copy">
-              <p className="campaign-kicker">
-                Возвращение того самого вкуса
-                <span aria-hidden="true">●</span>
-                Минск
-              </p>
-              <div className="hero-brand-row">
+      <main className="festival-2026" id="main-content">
+        <FestivalMotion />
+
+        <section className="festival-hero" id="top" aria-labelledby="hero-title">
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="festival-hero-background"
+            fill
+            priority
+            sizes="100vw"
+            src="/images/hero-festival.webp"
+          />
+          <div className="festival-hero-shade" aria-hidden="true" />
+          <div
+            className="festival-note festival-note-one"
+            aria-hidden="true"
+            data-parallax
+            data-parallax-speed="18"
+          >
+            ♪
+          </div>
+          <div
+            className="festival-note festival-note-two"
+            aria-hidden="true"
+            data-parallax
+            data-parallax-speed="-12"
+          >
+            ♫
+          </div>
+
+          <div className="festival-shell festival-hero-inner">
+            <div className="festival-hero-copy" data-hero-entrance>
+              <p className="festival-eyebrow">Возвращение того самого вкуса</p>
+              <div className="festival-hero-brand">
                 <Image
                   alt="Lay’s"
-                  className="hero-logo"
-                  height={104}
-                  priority
+                  className="festival-hero-logo"
+                  height={190}
                   src="/images/lays-logo-pack-cutout.webp"
-                  width={104}
+                  width={190}
                 />
                 <span>представляет</span>
               </div>
               <h1 id="hero-title">
                 Грибной
-                <br />
-                фестиваль
+                <span>фестиваль</span>
               </h1>
-              <p className="hero-lead">{festival.description}</p>
-
-              <div className="hero-actions">
-                <a className="campaign-button campaign-button-red" href="#registration">
-                  Зарегистрироваться <span aria-hidden="true">↘</span>
-                </a>
-                <span className="free-entry">Вход бесплатный</span>
-              </div>
+              <p className="festival-hero-lead">{festival.description}</p>
+              <a className="festival-primary-button" href="#registration">
+                Зарегистрироваться <span aria-hidden="true">↘</span>
+              </a>
             </div>
 
-            <div className="hero-product" aria-label="Lay’s Белые грибы со сметаной">
-              <span className="hero-burst" aria-hidden="true" />
-              <span className="decor-chip decor-chip-one" aria-hidden="true" />
-              <span className="decor-chip decor-chip-two" aria-hidden="true" />
-              <span className="decor-leaf decor-leaf-one" aria-hidden="true">◆</span>
-              <span className="decor-leaf decor-leaf-two" aria-hidden="true">◆</span>
+            <div className="festival-hero-product" aria-hidden="true">
+              <span className="festival-product-rings" />
               <Image
-                alt="Пачка Lay’s со вкусом «Белые грибы со сметаной»"
-                className="product-pack"
+                alt=""
+                className="festival-product-pack festival-floating-pack"
                 height={768}
                 priority
-                sizes="(max-width: 767px) 86vw, (max-width: 1100px) 46vw, 520px"
+                sizes="(max-width: 720px) 72vw, (max-width: 1100px) 45vw, 490px"
                 src={heroImage}
                 width={577}
               />
-              <div className="return-sticker">
+              <span className="festival-return-label">
                 <strong>Он вернулся!</strong>
-                <span>Тот самый вкус</span>
-              </div>
+                <small>тот самый вкус</small>
+              </span>
             </div>
-
-            <dl className="hero-facts" aria-label="Главная информация о фестивале">
-              <div>
-                <dt>Когда</dt>
-                <dd>{campaignFestival.dateShort}</dd>
-              </div>
-              <div>
-                <dt>Время</dt>
-                <dd>{festival.time}</dd>
-              </div>
-              <div className="hero-fact-location">
-                <dt>Где</dt>
-                <dd>
-                  {festival.place}
-                  <small>{festival.address}</small>
-                </dd>
-              </div>
-              <div className="age-mark">
-                <dt>Возраст</dt>
-                <dd>{campaignFestival.age}</dd>
-              </div>
-            </dl>
           </div>
+
+          <dl className="festival-hero-facts" aria-label="Информация о фестивале">
+            <div>
+              <dt aria-label="Дата">▣</dt>
+              <dd>{dateShort}</dd>
+            </div>
+            <div>
+              <dt aria-label="Время">◷</dt>
+              <dd>{festival.time}</dd>
+            </div>
+            <div className="festival-hero-location">
+              <dt aria-label="Место">⌖</dt>
+              <dd>{placeShort}, {addressShort}</dd>
+            </div>
+            <div className="festival-hero-admission">
+              <dt>{campaignFestival.age}</dt>
+              <dd>{campaignFestival.admission}</dd>
+            </div>
+          </dl>
         </section>
 
-        <section className="about-section section-pad" id="about" aria-labelledby="about-title">
-          <div className="shell">
-            <div className="section-heading about-heading">
-              <p className="section-number">01 / О фестивале</p>
-              <h2 id="about-title">Главное грибное событие этого лета</h2>
-            </div>
-
-            <div className="about-layout">
-              <div className="about-copy">
-                <p className="about-intro">{festival.about}</p>
+        <section className="festival-about festival-section" id="about" aria-labelledby="about-title">
+          <div className="festival-shell">
+            <div className="festival-about-grid">
+              <div className="festival-about-copy" data-reveal>
+                <p className="festival-section-index">01 / О фестивале</p>
+                <h2 id="about-title">Главное грибное событие этого лета</h2>
+                <p className="festival-about-intro">{festival.about}</p>
                 <p>
-                  Приходите всей семьёй: пробовать, слушать музыку, участвовать
-                  в мастер-классах и отмечать возвращение вкуса, по которому мы
-                  успели соскучиться.
+                  Здесь встречаются любимый вкус, музыка, развлечения и атмосфера
+                  яркого летнего отдыха. Приходите всей семьёй — вход свободный.
                 </p>
-                <div className="flavour-note">
-                  <span aria-hidden="true">✦</span>
+                <div className="festival-about-location">
+                  <span aria-hidden="true">●</span>
                   <p>
-                    <strong>Lay’s «Белые грибы со сметаной»</strong>
-                    Снова хрустит. Снова влюбляет.
+                    <strong>{placeShort}</strong>
+                    {addressShort}
                   </p>
                 </div>
               </div>
 
-              <figure className="stadium-card">
+              <div className="festival-about-visual" data-reveal data-parallax data-parallax-speed="9">
                 <Image
-                  alt="Национальный олимпийский стадион «Динамо» в Минске"
+                  alt="Площадка грибного фестиваля Lay’s"
+                  className="festival-about-still-life"
                   fill
-                  sizes="(max-width: 767px) 100vw, 58vw"
+                  sizes="(max-width: 820px) 100vw, 50vw"
                   src={programImage}
                 />
-                <figcaption>
-                  <span>Место встречи</span>
-                  <strong>Верхняя площадка стадиона «Динамо»</strong>
-                  <small>ул. Кирова, 8, корпус 6</small>
-                </figcaption>
-              </figure>
-            </div>
-
-            <div className="flavour-campaign-card">
-              <Image
-                alt="Белые грибы, молодой картофель, золотистые чипсы и лесные листья"
-                fill
-                sizes="(max-width: 767px) 100vw, 1200px"
-                src="/images/mushroom-still-life-v2.webp"
-              />
-              <div className="flavour-campaign-copy">
-                <span>Вкус снова с нами</span>
-                <h3>Белые грибы<br />со сметаной</h3>
-                <p>
-                  Тот самый аромат леса и золотистый хруст — в пачке Lay’s и
-                  в программе целого городского фестиваля.
-                </p>
+                <div className="festival-about-product" aria-hidden="true">
+                  <Image
+                    alt=""
+                    className="festival-floating-pack"
+                    height={768}
+                    sizes="(max-width: 560px) 62vw, 340px"
+                    src={heroImage}
+                    width={577}
+                  />
+                </div>
+                <span className="festival-about-badge">Снова<br />с нами</span>
               </div>
             </div>
-          </div>
-        </section>
 
-        <section className="artists-section section-pad" id="artists" aria-labelledby="artists-title">
-          <div className="shell">
-            <div className="section-heading light-heading">
-              <p className="section-number">02 / Артисты</p>
-              <h2 id="artists-title">Музыка, которая звучит вкусно</h2>
-              <p>Живые выступления с полудня до самого вечера.</p>
-            </div>
-
-            <div className="headliner-grid">
-              {artists.slice(0, 2).map((artist, index) => (
-                <article className="headliner-card" key={artist}>
-                  <Image
-                    alt={`Выступление ${artist} на фестивальной сцене`}
-                    fill
-                    sizes="(max-width: 640px) 100vw, 50vw"
-                    src={index === 0
-                      ? "/images/evening-concert.webp"
-                      : "/images/hero-festival.webp"}
-                  />
-                  <div>
-                    <span>Хэдлайнер</span>
-                    <h3>{artist}</h3>
-                    <small>{index === 0 ? "15:40–16:40" : "20:30–22:00"}</small>
-                  </div>
+            <div className="festival-feature-grid" aria-label="Главное о фестивале">
+              {festival.features.map((feature, index) => (
+                <article data-reveal key={`${feature.title}-${index}`} style={revealStyle(index)}>
+                  <span>{String(index + 1).padStart(2, "0")}</span>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.description}</p>
                 </article>
               ))}
+              {featureImage && (
+                <figure className="festival-feature-photo" data-reveal>
+                  <Image
+                    alt={featureImage.alt}
+                    fill
+                    sizes="(max-width: 820px) 100vw, 1296px"
+                    src={featureImage.src}
+                    style={{ objectPosition: featureImage.position }}
+                  />
+                  <figcaption>
+                    <strong>{dateShort}, {festival.time}</strong>
+                    <span>{campaignFestival.age} · {campaignFestival.admission}</span>
+                  </figcaption>
+                </figure>
+              )}
             </div>
-            <div className="other-artists">
-              <span>Также на сцене</span>
-              <p>{artists.slice(2).join(" · ")}</p>
-            </div>
-          </div>
-          <div className="artist-marquee" aria-hidden="true">
-            <span>ХРУСТИМ • ТАНЦУЕМ • ВСТРЕЧАЕМ ТОТ САМЫЙ ВКУС • </span>
+
           </div>
         </section>
 
-        <section className="zones-section section-pad" id="zones" aria-labelledby="zones-title">
-          <div className="shell">
-            <div className="section-heading zones-heading">
-              <p className="section-number">03 / Фестивальные зоны</p>
-              <h2 id="zones-title">Здесь есть чем заняться</h2>
-              <p>
-                Все зоны работают с 12:00 до 21:30. Отдельная регистрация нужна
-                только на некоторые мастер-классы — записаться можно на месте.
-              </p>
-            </div>
+        <section className="festival-artists festival-section" id="artists" aria-labelledby="artists-title">
+          <div className="festival-shell">
+            <header className="festival-heading festival-heading-centered" data-reveal>
+              <p className="festival-section-index">02 / Артисты</p>
+              <div className="festival-heading-rule" aria-hidden="true" />
+              <h2 id="artists-title">Тот самый вкус, та самая музыка</h2>
+              <div className="festival-heading-rule" aria-hidden="true" />
+            </header>
 
-            <div className="zones-grid">
-              {zones.map((zone, index) => (
-                <article className={`zone-card zone-${zone.tone}`} key={zone.title}>
-                  <div className="zone-image" aria-hidden="true">
+            <div className="festival-artist-grid">
+              {artists.map((artist, index) => (
+                <article
+                  className={`festival-artist-card festival-artist-card-${(index % 5) + 1}`}
+                  data-reveal
+                  key={artist}
+                  style={revealStyle(index)}
+                >
+                  <div className="festival-artist-image">
                     <Image
-                      alt=""
+                      alt={gallery[index]?.alt || `Выступление ${artist}`}
                       fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      src={gallery[index]?.src ?? "/images/hero-festival.webp"}
+                      sizes="(max-width: 620px) 100vw, (max-width: 980px) 50vw, 34vw"
+                      src={gallery[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}
                       style={{ objectPosition: gallery[index]?.position }}
                     />
                   </div>
-                  <span className="zone-number">{zone.number}</span>
-                  <div className="zone-copy">
-                    <h3>{zone.title}</h3>
-                    <p>{zone.description}</p>
+                  <div className="festival-artist-name">
+                    <h3>{artist}</h3>
+                    <span>{artistTime(artist, program)}</span>
                   </div>
+                </article>
+              ))}
+            </div>
+          </div>
+          <div className="festival-music-ribbon" aria-hidden="true">
+            <span>МУЗЫКА • ЛЕТО • ТОТ САМЫЙ ВКУС • МУЗЫКА • ЛЕТО • ТОТ САМЫЙ ВКУС •</span>
+          </div>
+        </section>
+
+        <section className="festival-zones festival-section" id="zones" aria-labelledby="zones-title">
+          <div className="festival-shell">
+            <header className="festival-heading festival-heading-centered" data-reveal>
+              <p className="festival-section-index">03 / Развлечения</p>
+              <div className="festival-heading-rule" aria-hidden="true" />
+              <h2 id="zones-title">Тот самый вкус, те самые развлечения</h2>
+              <div className="festival-heading-rule" aria-hidden="true" />
+            </header>
+
+            <article className="festival-record" id="record" data-reveal>
+              <div className="festival-record-image">
+                <Image
+                  alt="Большая сковорода с картофелем и грибами возле стадиона «Динамо»"
+                  fill
+                  sizes="(max-width: 820px) 100vw, 1290px"
+                  src="/images/mushroom-record.webp"
+                />
+              </div>
+              <div className="festival-record-copy">
+                <span className="festival-record-number">01</span>
+                <div>
+                  <h3>{festivalRecord.title}</h3>
+                  <p>{festivalRecord.description}</p>
+                </div>
+              </div>
+            </article>
+
+            <div className="festival-zone-pills" aria-label="Фестивальные зоны">
+              {zones.map((zone, index) => (
+                <article data-reveal key={zone.title} style={revealStyle(index)}>
+                  <span>{zone.number}</span>
+                  <h3>{zone.title}</h3>
+                  <span className="festival-zone-symbol" aria-hidden="true">
+                    {index % 2 === 0 ? "✦" : "●"}
+                  </span>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="program-section section-pad" id="program" aria-labelledby="program-title">
-          <div className="shell program-layout">
-            <div className="program-intro">
-              <div className="section-heading">
-                <p className="section-number">04 / Программа</p>
-                <h2 id="program-title">Один день. Много поводов остаться до финала</h2>
-              </div>
-              <div className="program-date-card">
-                <strong>16</strong>
-                <span>августа<br />12:00–22:00</span>
-              </div>
-              <p>
-                Программа может незначительно меняться. Следите за объявлениями
-                ведущего на площадке.
-              </p>
+        <section className="festival-program festival-section" id="program" aria-labelledby="program-title">
+          <div
+            className="festival-program-pack festival-program-pack-left"
+            aria-hidden="true"
+            data-parallax
+            data-parallax-speed="14"
+          >
+            <Image alt="" height={240} src={heroImage} width={180} />
+          </div>
+          <div
+            className="festival-program-pack festival-program-pack-right"
+            aria-hidden="true"
+            data-parallax
+            data-parallax-speed="-17"
+          >
+            <Image alt="" height={270} src={heroImage} width={203} />
+          </div>
+
+          <div className="festival-shell">
+            <header className="festival-heading festival-heading-centered" data-reveal>
+              <p className="festival-section-index">04 / Программа</p>
+              <div className="festival-heading-rule" aria-hidden="true" />
+              <h2 id="program-title">Найдите для себя то самое событие дня</h2>
+              <div className="festival-heading-rule" aria-hidden="true" />
+            </header>
+
+            <div className="festival-program-meta" data-reveal>
+              <strong>{dateShort}</strong>
+              <span>{festival.time}</span>
+              <span>{placeShort} · {city}</span>
             </div>
 
-            <ol className="campaign-timeline">
+            <ol className="festival-timeline">
               {program.map((item, index) => (
-                <li key={`${item.time}-${item.title}`}>
-                  <div className="timeline-time">
-                    <time>{item.time}</time>
-                    <span>{String(index + 1).padStart(2, "0")}</span>
-                  </div>
-                  <div className="timeline-event">
-                    <span className="timeline-category">{item.category}</span>
+                <li data-reveal key={`${item.time}-${item.title}`} style={revealStyle(index % 6)}>
+                  <time>{item.time}</time>
+                  <span className="festival-timeline-marker" aria-hidden="true">
+                    <i />
+                  </span>
+                  <div className="festival-timeline-copy">
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>
                     <small>{item.venue}</small>
@@ -268,23 +420,22 @@ export default async function Home() {
           </div>
         </section>
 
-        <section
-          className="registration-section section-pad"
-          id="registration"
-          aria-labelledby="registration-title"
-        >
-          <div className="registration-decor" aria-hidden="true">
-            <Image
-              alt=""
-              height={614}
-              sizes="320px"
-              src={heroImage}
-              width={460}
-            />
-          </div>
-          <div className="shell registration-layout">
-            <div className="registration-copy">
-              <p className="section-number">05 / Регистрация</p>
+        <section className="festival-registration festival-section" id="registration" aria-labelledby="registration-title">
+          <div className="festival-shell festival-registration-grid">
+            <div className="festival-registration-product" aria-hidden="true" data-reveal>
+              <span className="festival-registration-rings" />
+              <Image
+                alt=""
+                className="festival-floating-pack"
+                height={768}
+                sizes="(max-width: 820px) 68vw, 500px"
+                src={heroImage}
+                width={577}
+              />
+            </div>
+
+            <div className="festival-registration-content" data-reveal>
+              <p className="festival-section-index">05 / Регистрация</p>
               <h2 id="registration-title">
                 Зарегистрируйтесь и приходите на «Грибной фестиваль Lay’s»!
               </h2>
@@ -292,66 +443,58 @@ export default async function Home() {
                 Заполните форму, чтобы получить подтверждение регистрации и всю
                 необходимую информацию о фестивале на электронную почту.
               </p>
-              <ul>
-                <li>16 августа, 12:00–22:00</li>
-                <li>Стадион «Динамо», ул. Кирова, 8/6</li>
-                <li>0+ · бесплатно</li>
-              </ul>
-            </div>
-            <div className="registration-form-card">
-              <p className="form-kicker">Бесплатная регистрация</p>
-              <RegistrationForm />
+              <div className="festival-registration-facts">
+                <span>{dateShort}</span>
+                <span>{festival.time}</span>
+                <span>{placeShort}, {addressShort}</span>
+              </div>
+              <TrackedCalendarLink
+                className="festival-calendar-link"
+                href={buildFestivalCalendarUrl(content)}
+              >
+                Добавить в календарь <span aria-hidden="true">↗</span>
+              </TrackedCalendarLink>
+              <div className="festival-registration-form">
+                <RegistrationForm />
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="campaign-footer">
-        <div className="shell footer-grid">
-          <div className="footer-brand">
-            <Image
-              alt="Lay’s"
-              height={76}
-              src="/images/lays-logo-pack-cutout.webp"
-              width={76}
-            />
-            <strong>Грибной фестиваль Lay’s</strong>
-            <span>Главное грибное событие этого лета.</span>
+      <footer className="festival-footer">
+        <div className="festival-shell festival-footer-inner">
+          <Image
+            alt="Lay’s"
+            height={90}
+            src="/images/lays-logo-pack-cutout.webp"
+            width={90}
+          />
+          <div className="festival-footer-socials" aria-label="Социальные сети Lay’s">
+            <a href="https://www.instagram.com/lays/" rel="noreferrer" target="_blank" aria-label="Lay’s в Instagram">IG</a>
+            <a href="https://www.tiktok.com/@lays" rel="noreferrer" target="_blank" aria-label="Lay’s в TikTok">TT</a>
+            <a href="https://vk.com/lays" rel="noreferrer" target="_blank" aria-label="Lay’s во ВКонтакте">VK</a>
           </div>
-          <div>
-            <p>Когда и где</p>
-            <strong>16 августа · 12:00–22:00</strong>
-            <span>Стадион «Динамо»<br />ул. Кирова, 8, корпус 6</span>
+          <div className="festival-footer-facts">
+            <strong>{dateShort}, {festival.time}</strong>
+            <span>{placeShort}, {addressShort}</span>
+            <span>
+              {campaignFestival.age} · {campaignFestival.admission.replace(/^Вход\s+/iu, "")}
+            </span>
           </div>
-          <nav aria-label="Навигация в подвале">
-            <p>Фестиваль</p>
-            <a href="#artists">Артисты</a>
-            <a href="#zones">Зоны</a>
-            <a href="#program">Программа</a>
-            <a href="#registration">Регистрация</a>
-          </nav>
-          <div className="footer-contacts">
-            <p>Обратная связь</p>
+          <p className="festival-footer-license">
+            Удостоверение № 3614 от 05.08.2026 г. выдано Управлением культуры
+            Минского городского исполнительного комитета. Организатор: ООО
+            «Голоса Бай», УНП 693285991
+          </p>
+          <div className="festival-footer-links">
+            <span>© 2026 Lay’s</span>
+            <Link href="/privacy">Политика обработки данных</Link>
             <a href="mailto:festival@lays.by">festival@lays.by</a>
-            <div className="footer-socials" aria-label="Социальные сети Lay’s">
-              <a href="https://www.instagram.com/lays/" rel="noreferrer" target="_blank" aria-label="Lay’s в Instagram">IG</a>
-              <a href="https://www.tiktok.com/@lays" rel="noreferrer" target="_blank" aria-label="Lay’s в TikTok">TT</a>
-              <a href="https://www.youtube.com/user/Lays" rel="noreferrer" target="_blank" aria-label="Lay’s на YouTube">YT</a>
-            </div>
           </div>
-        </div>
-        <div className="shell footer-bottom">
-          <span>© 2026 Lay’s. Все права защищены.</span>
-          <Link href="/privacy">Политика обработки данных</Link>
-          <a
-            href="https://commons.wikimedia.org/wiki/File:Dinamo-Stadium-Minsk-2019-01.jpg"
-            rel="noreferrer"
-            target="_blank"
-          >
-            Фото стадиона: Showmeheaven, CC BY-SA 4.0
-          </a>
         </div>
       </footer>
+      <CookieConsent />
     </>
   );
 }

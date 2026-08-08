@@ -17,6 +17,8 @@ HTML-подтверждения по email и закрытую панель ор
   редактируемого содержимого сайта;
 - HTML- и text-письма через Resend с логотипом, датой, временем, адресом,
   количеством гостей, полной программой и ссылкой Google Calendar;
+- A4 PDF с кириллицей и актуальной программой во вложении к каждому письму о
+  регистрации, включая повторную отправку;
 - сохранение заявки до отправки письма: сбой почты не удаляет регистрацию и
   записывается как `FAILED`;
 - закрытая админка со статистикой, поиском, сортировкой, фильтром, повторной
@@ -24,8 +26,8 @@ HTML-подтверждения по email и закрытую панель ор
 - редактор текстов, программы и фотографий;
 - CSP и security headers, same-origin API, CSRF double-submit token, безопасные
   cookies, bcrypt-пароль и ограничение попыток административного входа;
-- опциональное подключение Google Analytics и Яндекс Метрики через переменные
-  окружения, без изменения разметки страниц;
+- Google Analytics и Яндекс Метрика с типизированными событиями регистрации и
+  возможностью заменить публичные ID через переменные окружения;
 - standalone production-сборка и Docker Compose с постоянным volume для данных.
 
 ## Архитектура
@@ -50,6 +52,25 @@ public/images/                          # оптимизированные WebP-
 
 Стек: Next.js 16, React 19, TypeScript, SQLite (`better-sqlite3`), Zod,
 React Hook Form, Resend HTTP API, ExcelJS, Vitest и ESLint.
+
+## DESIGN
+
+Desktop-версия перенесена по приложенным screenshots и CSS-export нового
+Figma-макета: фирменные песочный, кремовый, оранжевый и тёмно-зелёный цвета,
+продуктовый hero, коллаж артистов, карточка рекорда и линейный таймлайн.
+Исходный Figma-файл в окружении проекта не подключён, поэтому реализация
+выполнена семантической React/CSS-вёрсткой по доступному desktop reference.
+
+Основные диапазоны:
+
+- `1181 px` и шире — полный desktop, эталонная проверка на `1440 px`;
+- `821–1180 px` — компактный desktop и tablet landscape;
+- `561–820 px` — tablet, двухколоночные карточки и мобильная навигация;
+- `320–560 px` — самостоятельный phone layout: одна колонка, перестроенный
+  таймлайн, форма и footer без горизонтального скролла.
+
+Анимации ограничены появлением блоков, лёгким parallax, floating product pack и
+бегущей строкой. При `prefers-reduced-motion: reduce` они отключаются.
 
 ## Локальный запуск
 
@@ -77,19 +98,26 @@ openssl rand -base64 48
 одинарные кавычки.
 
 Без `RESEND_API_KEY` и `EMAIL_FROM` заявка всё равно сохраняется, а доставка
-получает статус `FAILED`. Для реальной отправки подтвердите домен отправителя в
-Resend и укажите публичный HTTPS URL.
+получает статус `FAILED` и остаётся доступной для retry из админки.
 
-## Проверка качества
+## QA
 
 ```bash
+npm ci
 npm run lint
 npm run typecheck
 npm test
 npm run build
 ```
 
-## Production-запуск без Docker
+После production-сборки дополнительно проверьте в реальном браузере размеры
+`320`, `360`, `768`, `1024` и `1440 px`, отсутствие horizontal overflow,
+отправку событий в GA DebugView и Яндекс Метрике, а также письмо и PDF на
+реальном почтовом ящике.
+
+## DEPLOY
+
+### Без Docker
 
 ```bash
 npm ci
@@ -101,7 +129,7 @@ npm run start
 `NEXT_PUBLIC_SITE_URL` и `SITE_ORIGIN` в один и тот же канонический HTTPS origin
 и подключите постоянный диск для каталога `data/`.
 
-## Деплой через Docker Compose
+### Docker Compose
 
 ```bash
 cp .env.example .env
@@ -120,6 +148,11 @@ docker compose build --pull
 docker compose up -d
 ```
 
+Public analytics IDs передаются и на этапе `docker compose build`, поскольку
+Next.js включает `NEXT_PUBLIC_*` значения в клиентскую сборку. После деплоя
+сделайте тестовую регистрацию: запись должна появиться в админке до попытки
+отправки, а письмо должно содержать PDF-вложение.
+
 ## Переменные окружения
 
 | Переменная | Назначение |
@@ -132,11 +165,54 @@ docker compose up -d
 | `EMAIL_REPLY_TO` | Адрес для ответов |
 | `EMAIL_LOGO_URL` | Необязательный абсолютный URL логотипа в письме |
 | `FESTIVAL_CALENDAR_START/END` | UTC-границы события для Google Calendar |
-| `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` | Необязательный идентификатор GA4 формата `G-…` |
-| `NEXT_PUBLIC_YANDEX_METRIKA_ID` | Необязательный числовой ID Яндекс Метрики |
+| `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID` | Публичный GA4 ID; по умолчанию `G-5TRMXGC4H8` |
+| `NEXT_PUBLIC_YANDEX_METRIKA_ID` | Публичный ID Метрики; по умолчанию `111386192` |
 | `ADMIN_USERNAME` | Уникальный логин организатора |
 | `ADMIN_PASSWORD_HASH` | Bcrypt-хеш с cost 10–14, рекомендуется 12 |
 | `ADMIN_SESSION_SECRET` | Случайный секрет не короче 32 символов |
+
+## ANALYTICS
+
+На публичных маршрутах один раз подключаются Google tag и Яндекс Метрика; из
+`/admin/**` и `/api/**` аналитика полностью исключена вместе с её CSP-доменами.
+Для Метрики включены `ssr`, Webvisor, clickmap, ecommerce `dataLayer`, точный
+bounce tracking и trackLinks; также присутствует `noscript` pixel. Публичная CSP
+разрешает только необходимые Google/Yandex script, connect, image и Webvisor
+endpoints.
+
+Через `lib/analytics.ts` в обе системы отправляются события
+`registration_form_view`, `registration_start`, `registration_submit`,
+`registration_success`, `registration_error` и `calendar_click`. Email и другие
+персональные данные в параметры не передаются. Для production-проверки откройте
+GA DebugView и отладчик Метрики, выполните регистрацию и убедитесь, что каждый
+tag загружен один раз и цели приходят с указанными ID.
+
+## EMAIL
+
+Подтверждения отправляются server-side через Resend. Перед запуском:
+
+1. Добавьте и подтвердите домен отправителя в Resend, включая выданные сервисом
+   DNS-записи SPF/DKIM.
+2. Задайте `RESEND_API_KEY` только в server environment.
+3. Укажите подтверждённый sender в `EMAIL_FROM`.
+4. Укажите реальный принимающий ответы адрес в `EMAIL_REPLY_TO`; Resend не
+   создаёт для него почтовый ящик.
+5. При необходимости задайте публичный PNG-логотип через `EMAIL_LOGO_URL`.
+
+Сначала регистрация сохраняется в SQLite, затем создаются PDF и email attempt.
+Ошибка рендера, PDF или Resend переводит доставку в `FAILED`, не удаляя заявку.
+Retry из админки повторно берёт актуальные тексты и программу. Массовая рассылка
+использует прежний поток и не получает registration PDF.
+
+## PDF
+
+`lib/registration-pdf.ts` генерирует настоящий A4 PDF через `pdf-lib` и
+`@pdf-lib/fontkit`. Локальные Noto Sans Regular/Bold в `public/fonts/` встроены в
+документ, поэтому русские тексты не зависят от шрифтов устройства. В PDF входят
+дата, время, полное место, количество посетителей и программа из того же
+`SiteContent`, что используются сайтом, письмом и админкой. Файл
+`lays-festival-registration.pdf` кодируется в Base64 и передаётся в
+`attachments` Resend confirmation email.
 
 ## API регистрации
 

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type {
   FestivalFeature,
   ProgramContentItem,
+  RegistrationEmailContent,
   SiteContent,
 } from "@/content/site-content";
 import { adminFetch } from "@/lib/admin-csrf-client";
@@ -65,6 +66,19 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
       program: current.program.map((item, itemIndex) =>
         itemIndex === index ? { ...item, [field]: value } : item,
       ),
+    }));
+  }
+
+  function updateRegistrationEmail(
+    field: keyof RegistrationEmailContent,
+    value: string,
+  ) {
+    setContent((current) => ({
+      ...current,
+      registrationEmail: {
+        ...current.registrationEmail,
+        [field]: value,
+      },
     }));
   }
 
@@ -176,6 +190,104 @@ export function SiteEditor({ initialContent }: SiteEditorProps) {
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      <section className="editor-card">
+        <div className="editor-card-heading">
+          <div>
+            <p className="editor-kicker">Письмо после регистрации</p>
+            <h2>Шаблон подтверждения</h2>
+          </div>
+          <p>
+            Редактируются только безопасные текстовые поля. Дата, место,
+            количество гостей и программа подставляются автоматически.
+          </p>
+        </div>
+        <div className="editor-table-wrap">
+          <table className="editor-table">
+            <tbody>
+              <tr>
+                <th scope="row">Тема письма</th>
+                <td>
+                  <input
+                    maxLength={160}
+                    value={content.registrationEmail.subject}
+                    onChange={(event) =>
+                      updateRegistrationEmail("subject", event.target.value)
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Заголовок</th>
+                <td>
+                  <input
+                    maxLength={120}
+                    value={content.registrationEmail.heading}
+                    onChange={(event) =>
+                      updateRegistrationEmail("heading", event.target.value)
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Вводный текст</th>
+                <td>
+                  <textarea
+                    maxLength={800}
+                    rows={4}
+                    value={content.registrationEmail.intro}
+                    onChange={(event) =>
+                      updateRegistrationEmail("intro", event.target.value)
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Заключительный текст</th>
+                <td>
+                  <textarea
+                    maxLength={800}
+                    rows={4}
+                    value={content.registrationEmail.closing}
+                    onChange={(event) =>
+                      updateRegistrationEmail("closing", event.target.value)
+                    }
+                  />
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Текст кнопки календаря</th>
+                <td>
+                  <input
+                    maxLength={80}
+                    value={content.registrationEmail.calendarButtonLabel}
+                    onChange={(event) =>
+                      updateRegistrationEmail(
+                        "calendarButtonLabel",
+                        event.target.value,
+                      )
+                    }
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div className="editor-save-bar">
+          <p>
+            Предпросмотр использует последнюю сохранённую версию и ничего не
+            отправляет.
+          </p>
+          <a
+            className="button"
+            href="/api/admin/email-preview"
+            rel="noreferrer"
+            target="_blank"
+          >
+            Предпросмотр письма
+          </a>
         </div>
       </section>
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { defaultSiteContent } from "@/content/site-content";
 import { getSiteContent, saveSiteContent } from "@/db";
 import { adminMutationSecurityError } from "@/lib/admin-request-security";
 
@@ -23,7 +24,7 @@ const imageSchema = z.object({
   position: text.max(80),
 });
 const siteContentSchema = z.object({
-  version: z.number().int().min(1),
+  version: z.number().int().min(1).max(defaultSiteContent.version),
   festival: z.object({
     name: text.max(100),
     date: text.max(100),
@@ -35,6 +36,13 @@ const siteContentSchema = z.object({
     features: z.array(featureSchema).min(1).max(6),
   }),
   program: z.array(programItemSchema).min(1).max(24),
+  registrationEmail: z.object({
+    subject: text.max(160),
+    heading: text.max(120),
+    intro: text.max(800),
+    closing: text.max(800),
+    calendarButtonLabel: text.max(80),
+  }),
   heroImage: text.max(260),
   programImage: text.max(260),
   gallery: z.array(imageSchema).length(6),
@@ -78,6 +86,12 @@ export async function PUT(request: Request) {
     );
   }
 
-  await saveSiteContent(parsed.data);
+  await saveSiteContent({
+    ...parsed.data,
+    // The version is server-owned metadata. Older open admin tabs may submit
+    // their previous version, but their valid text edits must not be migrated
+    // away on the next read.
+    version: defaultSiteContent.version,
+  });
   return Response.json({ success: true });
 }

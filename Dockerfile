@@ -1,6 +1,8 @@
 FROM node:22-alpine AS dependencies
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV npm_config_nodedir=/usr/local
+RUN apk add --no-cache python3 make g++
 COPY package.json package-lock.json ./
 RUN npm ci
 

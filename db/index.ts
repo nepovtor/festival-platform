@@ -168,10 +168,85 @@ const migrations = [
       );
     `,
   },
+  {
+    version: 2,
+    sql: `
+      UPDATE email_deliveries
+      SET
+        status = 'FAILED',
+        error_message = COALESCE(
+          error_message,
+          'Superseded by a newer pending confirmation attempt'
+        ),
+        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE kind = 'CONFIRMATION'
+        AND status = 'PENDING'
+        AND EXISTS (
+          SELECT 1
+          FROM email_deliveries AS newer
+          WHERE newer.registration_id = email_deliveries.registration_id
+            AND newer.kind = 'CONFIRMATION'
+            AND newer.status = 'PENDING'
+            AND (
+              newer.attempt_number > email_deliveries.attempt_number
+              OR (
+                newer.attempt_number = email_deliveries.attempt_number
+                AND (
+                  newer.created_at > email_deliveries.created_at
+                  OR (
+                    newer.created_at = email_deliveries.created_at
+                    AND newer.id > email_deliveries.id
+                  )
+                )
+              )
+            )
+        );
+
+      UPDATE registrations
+      SET
+        email_status = 'PENDING',
+        email_attempt_count = MAX(
+          email_attempt_count,
+          (
+            SELECT pending.attempt_number
+            FROM email_deliveries AS pending
+            WHERE pending.registration_id = registrations.id
+              AND pending.kind = 'CONFIRMATION'
+              AND pending.status = 'PENDING'
+            ORDER BY pending.attempt_number DESC
+            LIMIT 1
+          )
+        ),
+        email_last_attempt_at = (
+          SELECT pending.created_at
+          FROM email_deliveries AS pending
+          WHERE pending.registration_id = registrations.id
+            AND pending.kind = 'CONFIRMATION'
+            AND pending.status = 'PENDING'
+          ORDER BY pending.attempt_number DESC
+          LIMIT 1
+        ),
+        email_last_error = NULL,
+        email_provider_id = NULL,
+        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      WHERE EXISTS (
+        SELECT 1
+        FROM email_deliveries AS pending
+        WHERE pending.registration_id = registrations.id
+          AND pending.kind = 'CONFIRMATION'
+          AND pending.status = 'PENDING'
+      );
+
+      CREATE UNIQUE INDEX email_deliveries_one_pending_confirmation_idx
+        ON email_deliveries(registration_id)
+        WHERE kind = 'CONFIRMATION' AND status = 'PENDING';
+    `,
+  },
 ] as const;
 
 let database: Database.Database | null = null;
 let openedDatabasePath: string | null = null;
+const confirmationAttemptLeaseMs = 5 * 60 * 1_000;
 
 export class RegistrationAlreadyExistsError extends Error {
   constructor() {
@@ -563,27 +638,128 @@ export async function getRegistration(
   return row ? registrationFromRow(row) : null;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function storedString(
+  source: Record<string, unknown>,
+  key: string,
+  fallback: string,
+) {
+  return typeof source[key] === "string" ? source[key] : fallback;
+}
+
 export async function getSiteContent(): Promise<SiteContent> {
   const row = getDatabase()
     .prepare("SELECT content_json FROM site_content WHERE id = 1")
     .get() as { content_json: string } | undefined;
   if (!row) return structuredClone(defaultSiteContent);
 
-  const content = JSON.parse(row.content_json) as Partial<SiteContent>;
-  if (content.version !== defaultSiteContent.version) {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(row.content_json);
+  } catch {
     return structuredClone(defaultSiteContent);
   }
+
+  if (!isRecord(parsed)) return structuredClone(defaultSiteContent);
+
+  const defaults = structuredClone(defaultSiteContent);
+  const storedVersion =
+    typeof parsed.version === "number" && Number.isInteger(parsed.version)
+      ? parsed.version
+      : 0;
+
+  if (storedVersion < defaultSiteContent.version) {
+    const legacyHeroImage = storedString(
+      parsed,
+      "heroImage",
+      defaults.heroImage,
+    );
+    const upgraded: SiteContent = {
+      ...defaults,
+      // The legacy starter used the festival crowd photo in a product-pack slot.
+      // Keep real admin uploads, but migrate that known incompatible default.
+      heroImage:
+        legacyHeroImage === "/images/hero-festival.webp"
+          ? defaults.heroImage
+          : legacyHeroImage,
+      programImage: storedString(
+        parsed,
+        "programImage",
+        defaults.programImage,
+      ),
+      gallery: Array.isArray(parsed.gallery)
+        ? (parsed.gallery as SiteContent["gallery"])
+        : defaults.gallery,
+    };
+    getDatabase()
+      .prepare(
+        "UPDATE site_content SET content_json = ?, updated_at = ? WHERE id = 1",
+      )
+      .run(JSON.stringify(upgraded), new Date().toISOString());
+    return upgraded;
+  }
+
+  const festival = isRecord(parsed.festival) ? parsed.festival : {};
+  const registrationEmail = isRecord(parsed.registrationEmail)
+    ? parsed.registrationEmail
+    : {};
+
   return {
-    ...structuredClone(defaultSiteContent),
-    ...content,
+    version: defaultSiteContent.version,
     festival: {
-      ...structuredClone(defaultSiteContent.festival),
-      ...content.festival,
-      features:
-        content.festival?.features ?? defaultSiteContent.festival.features,
+      name: storedString(festival, "name", defaults.festival.name),
+      date: storedString(festival, "date", defaults.festival.date),
+      time: storedString(festival, "time", defaults.festival.time),
+      place: storedString(festival, "place", defaults.festival.place),
+      address: storedString(festival, "address", defaults.festival.address),
+      description: storedString(
+        festival,
+        "description",
+        defaults.festival.description,
+      ),
+      about: storedString(festival, "about", defaults.festival.about),
+      features: Array.isArray(festival.features)
+        ? (festival.features as SiteContent["festival"]["features"])
+        : defaults.festival.features,
     },
-    program: content.program ?? defaultSiteContent.program,
-    gallery: content.gallery ?? defaultSiteContent.gallery,
+    program: Array.isArray(parsed.program)
+      ? (parsed.program as SiteContent["program"])
+      : defaults.program,
+    registrationEmail: {
+      subject: storedString(
+        registrationEmail,
+        "subject",
+        defaults.registrationEmail.subject,
+      ),
+      heading: storedString(
+        registrationEmail,
+        "heading",
+        defaults.registrationEmail.heading,
+      ),
+      intro: storedString(
+        registrationEmail,
+        "intro",
+        defaults.registrationEmail.intro,
+      ),
+      closing: storedString(
+        registrationEmail,
+        "closing",
+        defaults.registrationEmail.closing,
+      ),
+      calendarButtonLabel: storedString(
+        registrationEmail,
+        "calendarButtonLabel",
+        defaults.registrationEmail.calendarButtonLabel,
+      ),
+    },
+    heroImage: storedString(parsed, "heroImage", defaults.heroImage),
+    programImage: storedString(parsed, "programImage", defaults.programImage),
+    gallery: Array.isArray(parsed.gallery)
+      ? (parsed.gallery as SiteContent["gallery"])
+      : defaults.gallery,
   };
 }
 
@@ -641,6 +817,7 @@ export async function updateRegistrationEmailStatus(
     errorMessage?: string | null;
     providerId?: string | null;
     attemptedAt?: string | null;
+    expectedAttemptCount?: number | null;
   } = {},
 ): Promise<void> {
   const now = new Date().toISOString();
@@ -657,6 +834,10 @@ export async function updateRegistrationEmailStatus(
         email_provider_id = @providerId,
         updated_at = @now
       WHERE id = @id
+        AND (
+          @expectedAttemptCount IS NULL
+          OR email_attempt_count <= @expectedAttemptCount
+        )
     `)
     .run({
       id,
@@ -665,21 +846,58 @@ export async function updateRegistrationEmailStatus(
       attemptedAt: metadata.attemptedAt ?? null,
       errorMessage: metadata.errorMessage ?? null,
       providerId: metadata.providerId ?? null,
+      expectedAttemptCount: metadata.expectedAttemptCount ?? null,
     });
 }
 
 export async function beginRegistrationEmailAttempt(
   registrationId: string,
-): Promise<EmailDelivery> {
+): Promise<{ delivery: EmailDelivery; created: boolean }> {
   const connection = getDatabase();
   const deliveryId = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  return connection.transaction(() => {
+  const claimAttempt = connection.transaction(() => {
     const registration = connection
       .prepare(`${selectRegistrationSql} WHERE id = ?`)
       .get(registrationId) as RegistrationRow | undefined;
     if (!registration) throw new RegistrationNotFoundError();
+
+    const pendingDelivery = connection
+      .prepare(`
+        SELECT * FROM email_deliveries
+        WHERE registration_id = ?
+          AND kind = 'CONFIRMATION'
+          AND status = 'PENDING'
+        ORDER BY attempt_number DESC
+        LIMIT 1
+      `)
+      .get(registrationId) as EmailDeliveryRow | undefined;
+    if (pendingDelivery) {
+      const pendingStartedAt = Date.parse(pendingDelivery.created_at);
+      const pendingAge = Date.now() - pendingStartedAt;
+      if (
+        Number.isFinite(pendingStartedAt) &&
+        pendingAge < confirmationAttemptLeaseMs
+      ) {
+        return {
+          delivery: deliveryFromRow(pendingDelivery),
+          created: false,
+        };
+      }
+
+      connection
+        .prepare(`
+          UPDATE email_deliveries
+          SET status = 'FAILED', error_message = ?, updated_at = ?
+          WHERE id = ? AND status = 'PENDING'
+        `)
+        .run(
+          "Confirmation email delivery lease expired",
+          now,
+          pendingDelivery.id,
+        );
+    }
 
     const attemptNumber = registration.email_attempt_count + 1;
     connection
@@ -711,12 +929,19 @@ export async function beginRegistrationEmailAttempt(
       `)
       .run(attemptNumber, now, now, registrationId);
 
-    return deliveryFromRow(
-      connection
-        .prepare("SELECT * FROM email_deliveries WHERE id = ?")
-        .get(deliveryId) as EmailDeliveryRow,
-    );
-  })();
+    return {
+      delivery: deliveryFromRow(
+        connection
+          .prepare("SELECT * FROM email_deliveries WHERE id = ?")
+          .get(deliveryId) as EmailDeliveryRow,
+      ),
+      created: true,
+    };
+  });
+
+  // IMMEDIATE serializes the read-before-insert claim across processes sharing
+  // the SQLite database, so only one request can own a pending confirmation.
+  return claimAttempt.immediate();
 }
 
 export async function beginBroadcastEmailAttempt(
@@ -727,7 +952,7 @@ export async function beginBroadcastEmailAttempt(
   const deliveryId = crypto.randomUUID();
   const now = new Date().toISOString();
 
-  return connection.transaction(() => {
+  const createAttempt = connection.transaction(() => {
     const campaign = connection
       .prepare("SELECT id FROM email_campaigns WHERE id = ?")
       .get(campaignId);
@@ -769,7 +994,9 @@ export async function beginBroadcastEmailAttempt(
         .prepare("SELECT * FROM email_deliveries WHERE id = ?")
         .get(deliveryId) as EmailDeliveryRow,
     );
-  })();
+  });
+
+  return createAttempt.immediate();
 }
 
 export async function completeEmailAttempt(
@@ -781,7 +1008,7 @@ export async function completeEmailAttempt(
   const connection = getDatabase();
   const now = new Date().toISOString();
 
-  return connection.transaction(() => {
+  const finishAttempt = connection.transaction(() => {
     const delivery = connection
       .prepare("SELECT * FROM email_deliveries WHERE id = ?")
       .get(deliveryId) as EmailDeliveryRow | undefined;
@@ -816,7 +1043,7 @@ export async function completeEmailAttempt(
             email_last_error = ?,
             email_provider_id = ?,
             updated_at = ?
-          WHERE id = ?
+          WHERE id = ? AND email_attempt_count = ?
         `)
         .run(
           status,
@@ -826,6 +1053,7 @@ export async function completeEmailAttempt(
           providerId,
           now,
           delivery.registration_id,
+          delivery.attempt_number,
         );
     }
 
@@ -834,7 +1062,9 @@ export async function completeEmailAttempt(
         .prepare("SELECT * FROM email_deliveries WHERE id = ?")
         .get(deliveryId) as EmailDeliveryRow,
     );
-  })();
+  });
+
+  return finishAttempt.immediate();
 }
 
 export async function listEmailDeliveries(options: {

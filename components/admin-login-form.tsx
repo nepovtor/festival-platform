@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { adminFetch } from "@/lib/admin-csrf-client";
 
@@ -9,7 +8,6 @@ type AdminLoginFormProps = {
 };
 
 export function AdminLoginForm({ returnTo }: AdminLoginFormProps) {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");

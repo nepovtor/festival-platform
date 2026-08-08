@@ -151,6 +151,7 @@ export async function POST(request: Request) {
         await updateRegistrationEmailStatus(registrationId, "FAILED", {
           attemptedAt: new Date().toISOString(),
           errorMessage: "Confirmation processing failed",
+          expectedAttemptCount: registration.emailAttemptCount + 1,
         });
       } catch (statusError) {
         console.error(
