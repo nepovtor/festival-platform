@@ -1,0 +1,307 @@
+name: Apply final client fixes
+
+on:
+  push:
+    branches:
+      - chatgpt/final-fixes-v3-20260809
+
+permissions:
+  contents: write
+
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: chatgpt/final-fixes-v3-20260809
+          fetch-depth: 0
+
+      - name: Apply source fixes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 <<'PY'
+          from pathlib import Path
+          import re
+
+          root = Path('.')
+          page_path = root / 'app/page.tsx'
+          page = page_path.read_text(encoding='utf-8')
+
+          # New imports.
+          if 'FestivalRules' not in page:
+              anchor = 'import { FestivalMotion } from "@/components/festival-motion";\n'
+              page = page.replace(anchor, anchor + 'import { FestivalRules } from "@/components/festival-rules";\n')
+          if 'SocialIcon' not in page:
+              anchor = 'import { SiteHeader } from "@/components/site-header";\n'
+              page = page.replace(anchor, anchor + 'import { SocialIcon } from "@/components/social-icon";\n')
+
+          # Remove presentation additions that are not present in the approved desktop design.
+          page = re.sub(r'\s*<p className="festival-section-index">.*?</p>\n', '\n', page)
+          page = re.sub(r'\s*<p className="festival-eyebrow">.*?</p>\n', '\n', page)
+          page = page.replace('                <span>представляет</span>\n', '')
+          page = page.replace('                <span className="festival-record-number">01</span>\n', '')
+          page = re.sub(r'\s*<small>\{item\.venue\}</small>\n', '\n', page)
+          page = re.sub(r'\s*<span>\{artistTime\(artist, program\)\}</span>\n', '\n', page)
+
+          # Remove helper that becomes unused after removing artist-time labels.
+          page = page.replace('import type { ProgramContentItem } from "@/content/site-content";\n', '')
+          page = re.sub(
+              r'\nfunction normalizeArtistName\(value: string\) \{.*?\n\}\n\nfunction artistTime\(artist: string, program: ProgramContentItem\[\]\) \{.*?\n\}\n',
+              '\n',
+              page,
+              flags=re.S,
+          )
+
+          # About block: keep only content present in the approved composition.
+          page = re.sub(
+              r'\n\s*<p>\n\s*Здесь встречаются любимый вкус, музыка, развлечения и атмосфера\n\s*яркого летнего отдыха\. Приходите всей семьёй — вход свободный\.\n\s*</p>',
+              '',
+              page,
+          )
+          page = re.sub(
+              r'\n\s*<div className="festival-about-location">.*?</div>',
+              '',
+              page,
+              flags=re.S,
+          )
+
+          # Remove the extra feature grid, which was not part of the approved desktop export.
+          marker = '<div className="festival-feature-grid"'
+          pos = page.find(marker)
+          if pos != -1:
+              start = page.rfind('\n', 0, pos) + 1
+              token = re.compile(r'<div\b|</div>')
+              depth = 0
+              end = None
+              for m in token.finditer(page, pos):
+                  if m.group(0).startswith('<div'):
+                      depth += 1
+                  else:
+                      depth -= 1
+                      if depth == 0:
+                          end = m.end()
+                          break
+              if end is None:
+                  raise SystemExit('Could not balance festival-feature-grid')
+              page = page[:start] + page[end:]
+          page = page.replace('  const featureImage = gallery.at(-1);\n', '')
+
+          # Artist card classes support a sixth, mobile-only DJ card.
+          page = page.replace(
+              'festival-artist-card-${(index % 5) + 1}',
+              'festival-artist-card-${index + 1}',
+          )
+          page = page.replace(
+              'alt={gallery[index]?.alt || `Выступление ${artist}`}',
+              'alt={artist === "DJ Antono Kostritsky" ? "DJ Antono Kostritsky" : (gallery[index]?.alt || `Выступление ${artist}`)}',
+          )
+          page = page.replace(
+              'src={gallery[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}',
+              'src={artist === "DJ Antono Kostritsky" ? "/images/hero-festival.webp" : (gallery[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length])}',
+          )
+
+          # Replace text placeholders with proper SVG social icons.
+          page = re.sub(r'>\s*IG\s*<', '><SocialIcon name="instagram" /><', page)
+          page = re.sub(r'>\s*TT\s*<', '><SocialIcon name="tiktok" /><', page)
+          page = re.sub(r'>\s*VK\s*<', '><SocialIcon name="vk" /><', page)
+
+          # Insert the official mass-event visitor rules immediately before the end of main.
+          if '<FestivalRules />' not in page:
+              idx = page.rfind('</main>')
+              if idx == -1:
+                  raise SystemExit('main closing tag not found')
+              page = page[:idx] + '  <FestivalRules />\n        ' + page[idx:]
+
+          page_path.write_text(page, encoding='utf-8')
+
+          # Add mobile-only DJ to artist data without changing the approved desktop lineup.
+          festival_path = root / 'content/festival.ts'
+          festival = festival_path.read_text(encoding='utf-8')
+          if 'DJ Antono Kostritsky' not in festival:
+              m = re.search(r'(export const artists\s*=\s*\[)(.*?)(\]\s*as const;)', festival, flags=re.S)
+              if not m:
+                  raise SystemExit('artists array not found')
+              body = m.group(2).rstrip()
+              if body and not body.rstrip().endswith(','):
+                  body += ','
+              body += '\n  "DJ Antono Kostritsky",\n'
+              festival = festival[:m.start()] + m.group(1) + body + m.group(3) + festival[m.end():]
+              festival_path.write_text(festival, encoding='utf-8')
+
+          # Component: official visitor rules with accessible inline SVG icons.
+          (root / 'components/festival-rules.tsx').write_text(r'''type RuleIconName =
+            | "knife"
+            | "gun"
+            | "spray"
+            | "flammable"
+            | "bag"
+            | "skates";
+
+          type Rule = {
+            title: string;
+            icon: RuleIconName;
+          };
+
+          const rules: Rule[] = [
+            { title: "Холодное оружие", icon: "knife" },
+            { title: "Огнестрельное оружие", icon: "gun" },
+            { title: "Аэрозоли и баллончики", icon: "spray" },
+            { title: "Легковоспламеняющиеся вещества", icon: "flammable" },
+            { title: "Крупногабаритные сумки и рюкзаки", icon: "bag" },
+            { title: "Роликовые коньки", icon: "skates" },
+          ];
+
+          function RuleIcon({ name }: { name: RuleIconName }) {
+            const common = {
+              fill: "none",
+              stroke: "currentColor",
+              strokeLinecap: "round" as const,
+              strokeLinejoin: "round" as const,
+              strokeWidth: 2.1,
+            };
+            return (
+              <svg aria-hidden="true" viewBox="0 0 48 48" {...common}>
+                {name === "knife" && <><path d="M9 36 35 10c2 7-1 13-7 18L17 39z"/><path d="m14 31 7 7"/></>}
+                {name === "gun" && <><path d="M8 20h24l7 6H25l-4 11h-8l3-11H8z"/><path d="M31 20v-5h7"/></>}
+                {name === "spray" && <><rect x="15" y="17" width="18" height="23" rx="4"/><path d="M19 17v-6h10v6M29 12h8M37 12l4-3M37 12l4 3"/></>}
+                {name === "flammable" && <path d="M25 5c2 9-5 10-2 18 2 4 6 3 7-1 6 5 8 11 4 17-5 7-17 7-22 0-5-7 0-15 7-19-1 7 2 9 6 8 4-3 3-8 0-13z"/>}
+                {name === "bag" && <><rect x="8" y="16" width="32" height="25" rx="5"/><path d="M16 16v-4c0-4 3-7 8-7s8 3 8 7v4M24 22v13"/></>}
+                {name === "skates" && <><path d="M10 11h16v15l9 4v5H14c-4 0-6-3-4-7z"/><path d="M13 39h24M17 39a3 3 0 1 0 0 6 3 3 0 0 0 0-6M31 39a3 3 0 1 0 0 6 3 3 0 0 0 0-6"/></>}
+                <circle cx="24" cy="24" r="21" />
+                <path d="M9 9 39 39" />
+              </svg>
+            );
+          }
+
+          export function FestivalRules() {
+            return (
+              <section className="festival-rules festival-section" aria-labelledby="festival-rules-title">
+                <div className="festival-shell">
+                  <header className="festival-heading festival-heading-centered" data-reveal>
+                    <div className="festival-heading-rule" aria-hidden="true" />
+                    <h2 id="festival-rules-title">Правила посещения массового мероприятия</h2>
+                    <div className="festival-heading-rule" aria-hidden="true" />
+                  </header>
+                  <p className="festival-rules-lead">На территорию мероприятия запрещено проносить:</p>
+                  <div className="festival-rules-grid">
+                    {rules.map((rule) => (
+                      <article className="festival-rule" key={rule.title} data-reveal>
+                        <RuleIcon name={rule.icon} />
+                        <h3>{rule.title}</h3>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            );
+          }
+          ''', encoding='utf-8')
+
+          # Component: real social icons, no IG/TT/VK text placeholders.
+          (root / 'components/social-icon.tsx').write_text(r'''type SocialIconProps = {
+            name: "instagram" | "tiktok" | "vk";
+          };
+
+          export function SocialIcon({ name }: SocialIconProps) {
+            if (name === "instagram") {
+              return <svg aria-hidden="true" className="festival-social-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>;
+            }
+            if (name === "tiktok") {
+              return <svg aria-hidden="true" className="festival-social-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 3c.4 2.5 1.8 4 4.6 4.2v3.1c-1.7 0-3.2-.5-4.6-1.4v6.2c0 4-2.6 6.4-6.1 6.4a6 6 0 0 1 0-12c.4 0 .8 0 1.2.1v3.3a3 3 0 1 0 1.7 2.7V3z"/></svg>;
+            }
+            return <svg aria-hidden="true" className="festival-social-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12.6 17.2h1.2s.4 0 .6-.3c.2-.3.2-.8.2-.8s0-2.3 1-2.6c1-.3 2.4 2.2 3.8 3.2 1 .7 1.7.5 1.7.5l3.3-.1s1.7-.1.9-1.4c-.1-.1-.5-1.1-2.7-3.1-2.3-2.1-2-1.8.8-5.4 1.7-2.2 2.4-3.6 2.2-4.1-.2-.5-1.3-.4-1.3-.4l-3.7.1s-.3 0-.5.1c-.2.2-.3.5-.3.5s-.7 1.9-1.6 3.4c-2 3.4-2.8 3.6-3.1 3.4-.8-.5-.6-2-.6-3.1 0-3.5.5-5-.9-5.4-.5-.2-.8-.3-2-.3-1.5 0-2.8 0-3.5.4-.5.3-.9.9-.7.9.3 0 .9.2 1.2.6.4.5.4 1.8.4 1.8s.2 3.6-.6 4c-.6.3-1.3-.3-3-3.5-.9-1.6-1.5-3.4-1.5-3.4s-.1-.3-.4-.5c-.3-.2-.7-.2-.7-.2l-3.5.1s-.5 0-.7.2c-.2.2 0 .6 0 .6s2.8 6.6 6 9.9c3 3.1 6.4 2.9 6.4 2.9z" transform="scale(.82) translate(2 2)"/></svg>;
+          }
+          ''', encoding='utf-8')
+
+          # Append final visual rules rather than disturbing the large approved stylesheet structure.
+          css_path = root / 'app/globals.css'
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* FINAL CLIENT FIXES 2026-08-09 */'
+          if marker not in css:
+              css += r'''
+
+          /* FINAL CLIENT FIXES 2026-08-09 */
+          .festival-social-icon { width: 22px; height: 22px; display: block; }
+          .festival-artist-card-1 .festival-artist-image img { filter: brightness(1.13) saturate(.82) contrast(.96); }
+          .festival-artist-card-2 .festival-artist-image img { filter: sepia(.18) saturate(1.35) hue-rotate(-10deg) contrast(1.06); }
+          .festival-artist-card-3 .festival-artist-image img { image-rendering: pixelated; filter: contrast(1.08) saturate(.92); }
+          .festival-artist-card-3 .festival-artist-image::after { content:""; position:absolute; inset:0; pointer-events:none; background-image:linear-gradient(rgba(25,43,9,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(25,43,9,.08) 1px,transparent 1px); background-size:6px 6px; }
+          .festival-artist-card-4 .festival-artist-image,
+          .festival-artist-card-5 .festival-artist-image { border:4px solid #192b09; box-shadow:0 0 0 3px #edcd92,0 13px 25px rgba(78,43,7,.16); }
+          .festival-artist-card-6 { display:none; }
+
+          .festival-rules { background:#fff9ef; color:#192b09; padding-block:clamp(70px,7vw,112px); }
+          .festival-rules .festival-heading h2 { max-width:980px; }
+          .festival-rules-lead { margin:28px auto 36px; max-width:760px; text-align:center; font-family:var(--festival-body); font-size:clamp(1rem,1.6vw,1.25rem); font-weight:700; color:#563721; }
+          .festival-rules-grid { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:18px; }
+          .festival-rule { min-width:0; text-align:center; display:flex; flex-direction:column; align-items:center; gap:14px; padding:24px 10px 18px; }
+          .festival-rule svg { width:clamp(54px,5vw,76px); height:auto; color:#bc7a26; }
+          .festival-rule h3 { margin:0; font-family:var(--festival-body); font-size:clamp(.8rem,1.05vw,1rem); line-height:1.15; text-transform:uppercase; text-wrap:balance; color:#192b09; }
+
+          @media (max-width: 900px) {
+            .festival-rules-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px 10px; }
+          }
+
+          @media (max-width: 720px) {
+            .festival-artist-card-6 { display:block; grid-column:1 / span 5; order:5; min-width:0; justify-self:stretch; }
+            .festival-artist-card-3 { grid-column:6 / span 7 !important; order:6 !important; }
+            .festival-artist-card-6 .festival-artist-image { min-height:0; aspect-ratio:.92; border:2px solid #192b09; border-radius:18px 18px 46% 46% / 18px 18px 14% 14%; overflow:hidden; }
+            .festival-artist-card-6 .festival-artist-name { width:calc(100% - 8px); min-height:50px; margin-top:-24px; padding:8px 9px; }
+            .festival-rules { padding-block:58px; }
+            .festival-rules-lead { margin:20px auto 24px; }
+            .festival-rules-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 6px; }
+            .festival-rule { padding:16px 4px 12px; gap:10px; }
+            .festival-rule svg { width:54px; }
+            .festival-rule h3 { font-size:.72rem; }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .festival-rule { transition:none !important; animation:none !important; }
+          }
+          '''
+              css_path.write_text(css, encoding='utf-8')
+
+          # Add permanent CI workflow to prevent broken code landing in main later.
+          ci = root / '.github/workflows/ci.yml'
+          ci.parent.mkdir(parents=True, exist_ok=True)
+          ci.write_text('''name: CI\n\non:\n  push:\n    branches: [main]\n  pull_request:\n    branches: [main]\n\njobs:\n  quality:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 22\n          cache: npm\n      - run: npm ci\n      - run: npm run lint\n      - run: npm run typecheck\n      - run: npm test\n      - run: npm run build\n''', encoding='utf-8')
+
+          # The one-shot workflow removes itself from the final branch.
+          Path('.github/workflows/apply-final-fixes.yml').unlink()
+          PY
+
+          git diff --check
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+      - name: Commit verified changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Apply final festival client fixes"
+          git push origin HEAD:chatgpt/final-fixes-v3-20260809
