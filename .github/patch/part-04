@@ -1,0 +1,119 @@
+entered" data-reveal>
+-              <p className="festival-section-index">03 / Развлечения</p>
+               <div className="festival-heading-rule" aria-hidden="true" />
+               <h2 id="zones-title">Тот самый вкус, те самые развлечения</h2>
+               <div className="festival-heading-rule" aria-hidden="true" />
+@@ -348,22 +297,19 @@ export default async function Home() {
+                 />
+               </div>
+               <div className="festival-record-copy">
+-                <span className="festival-record-number">01</span>
+                 <div>
+                   <h3>{festivalRecord.title}</h3>
+                   <p>{festivalRecord.description}</p>
+                 </div>
++                <FestivalTrophyIcon />
+               </div>
+             </article>
+ 
+             <div className="festival-zone-pills" aria-label="Фестивальные зоны">
+               {zones.map((zone, index) => (
+                 <article data-reveal key={zone.title} style={revealStyle(index)}>
+-                  <span>{zone.number}</span>
+                   <h3>{zone.title}</h3>
+-                  <span className="festival-zone-symbol" aria-hidden="true">
+-                    {index % 2 === 0 ? "✦" : "●"}
+-                  </span>
++                  <FestivalZoneIcon name={festivalZoneIconNames[index] ?? "activity"} />
+                 </article>
+               ))}
+             </div>
+@@ -390,18 +336,11 @@ export default async function Home() {
+ 
+           <div className="festival-shell">
+             <header className="festival-heading festival-heading-centered" data-reveal>
+-              <p className="festival-section-index">04 / Программа</p>
+               <div className="festival-heading-rule" aria-hidden="true" />
+               <h2 id="program-title">Найдите для себя то самое событие дня</h2>
+               <div className="festival-heading-rule" aria-hidden="true" />
+             </header>
+ 
+-            <div className="festival-program-meta" data-reveal>
+-              <strong>{dateShort}</strong>
+-              <span>{festival.time}</span>
+-              <span>{placeShort} · {city}</span>
+-            </div>
+-
+             <ol className="festival-timeline">
+               {program.map((item, index) => (
+                 <li data-reveal key={`${item.time}-${item.title}`} style={revealStyle(index % 6)}>
+@@ -412,7 +351,6 @@ export default async function Home() {
+                   <div className="festival-timeline-copy">
+                     <h3>{item.title}</h3>
+                     <p>{item.description}</p>
+-                    <small>{item.venue}</small>
+                   </div>
+                 </li>
+               ))}
+@@ -435,7 +373,6 @@ export default async function Home() {
+             </div>
+ 
+             <div className="festival-registration-content" data-reveal>
+-              <p className="festival-section-index">05 / Регистрация</p>
+               <h2 id="registration-title">
+                 Зарегистрируйтесь и приходите на «Грибной фестиваль Lay’s»!
+               </h2>
+@@ -443,55 +380,35 @@ export default async function Home() {
+                 Заполните форму, чтобы получить подтверждение регистрации и всю
+                 необходимую информацию о фестивале на электронную почту.
+               </p>
+-              <div className="festival-registration-facts">
+-                <span>{dateShort}</span>
+-                <span>{festival.time}</span>
+-                <span>{placeShort}, {addressShort}</span>
+-              </div>
+-              <TrackedCalendarLink
+-                className="festival-calendar-link"
+-                href={buildFestivalCalendarUrl(content)}
+-              >
+-                Добавить в календарь <span aria-hidden="true">↗</span>
+-              </TrackedCalendarLink>
+               <div className="festival-registration-form">
+                 <RegistrationForm />
+               </div>
+             </div>
+           </div>
+         </section>
++
++        <FestivalRules
++          address={addressShort}
++          admission={admissionShort}
++          age={campaignFestival.age}
++          date={dateShort}
++          place={placeShort}
++          time={festival.time}
++        />
+       </main>
+ 
+       <footer className="festival-footer">
+         <div className="festival-shell festival-footer-inner">
+-          <Image
+-            alt="Lay’s"
+-            height={90}
+-            src="/images/lays-logo-pack-cutout.webp"
+-            width={90}
+-          />
+           <div className="festival-footer-socials" aria-label="Социальные сети Lay’s">
+-            <a href="https://www.instagram.com/lays/" rel="noreferrer" target="_blank" aria-label="Lay’s в Instagram">IG</a>
+-            <a href="https://www.tiktok.com/@lays" rel="noreferrer" target="_blank" aria-label="Lay’s в TikTok">TT</a>
+-            <a href="https://vk.com/lays" rel="noreferrer" target="_blank" aria-label="Lay’s во ВКонтакте">VK</a>
+-          </div>
+-          <div className="festival-footer-facts">
+-            <strong>{dateShort}, {festival.time}</strong>
+-            <span>{placeShort}, {addressShort}</span>
+-            <span>
+-              {campaignFestival.age} · {campaignFestival.admission.replace(/^Вход\s+/iu, "")}
+-            </span>
++            <a href="https://www.instagram.com/lays/" rel="noreferrer" target="_blank" aria-label="Lay’s в Instagram"><SocialIcon name="instagram" /></a>
++            <a href="https://www.tiktok.com/@lays" rel="noreferrer" target="_blank" aria-label="Lay’s в TikTok"><SocialIcon name="tiktok" /></a>
++            <a href="https://vk.com/lays" rel="noreferrer" target="_blank" aria-label="Lay’s во ВКонта
