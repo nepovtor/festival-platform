@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - chatgpt/final-client-fixes-20260809
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 jobs:
   apply:
-    if: github.actor != 'github-actions[bot]'
+    if: github.head_ref == 'chatgpt/final-client-fixes-20260809' || github.ref_name == 'chatgpt/final-client-fixes-20260809'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout branch
