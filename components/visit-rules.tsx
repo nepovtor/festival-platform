@@ -2,7 +2,7 @@ import Image from "next/image";
 import { attendanceRules, type AttendanceRuleIcon } from "@/content/rules";
 
 const visitRuleIconSrc: Record<AttendanceRuleIcon, string> = {
-  knife: "/icons/visit-rules/sword.svg",
+  knife: "/icons/visit-rules/knife.svg",
   firearm: "/icons/visit-rules/pistol.svg",
   aerosol: "/icons/visit-rules/spray.svg",
   flammable: "/icons/visit-rules/flame.svg",
