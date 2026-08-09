@@ -38,34 +38,6 @@ export const artists = [
   "Кавер-группа «Хуракан»",
 ] as const;
 
-export const artistImages = [
-  {
-    src: "/images/artists/police-in-paris.jpg",
-    alt: "Police in Paris",
-    position: "50% 48%",
-  },
-  {
-    src: "/images/artists/parade-of-planets.jpg",
-    alt: "Parade of Planets",
-    position: "50% 48%",
-  },
-  {
-    src: "/images/artists/borisovskiy-trakt.jpg",
-    alt: "Борисовский тракт",
-    position: "50% 42%",
-  },
-  {
-    src: "/images/artists/wasssup.jpg",
-    alt: "WASSSUP",
-    position: "50% 39%",
-  },
-  {
-    src: "/images/artists/huracan.jpg",
-    alt: "Кавер-группа «Хуракан»",
-    position: "38% 50%",
-  },
-] as const;
-
 export const festivalRecord = {
   title: "Грибной рекорд",
   description:

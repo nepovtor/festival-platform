@@ -470,15 +470,15 @@ describe("SQLite registration store", () => {
     });
   });
 
-  it("upgrades v5 default artist images while preserving admin uploads", async () => {
+  it("upgrades added artist images back to base gallery while preserving admin uploads", async () => {
     const content = structuredClone(defaultSiteContent);
-    content.version = 5;
+    content.version = 6;
     content.gallery = [
-      { ...content.gallery[0], src: "/images/hero-festival.webp" },
-      { ...content.gallery[1], src: "/images/craft-workshop.webp", position: "38% 61%" },
+      { ...content.gallery[0], src: "/images/artists/police-in-paris.jpg" },
+      { ...content.gallery[1], src: "/images/artists/parade-of-planets.jpg", position: "38% 61%" },
       { ...content.gallery[2], src: "/api/uploads/custom-artist.webp" },
-      { ...content.gallery[3], src: "/images/hero-festival.webp" },
-      { ...content.gallery[4], src: "/images/evening-concert.webp" },
+      { ...content.gallery[3], src: "/images/artists/wasssup.jpg" },
+      { ...content.gallery[4], src: "/images/artists/huracan.jpg" },
       content.gallery[5],
     ];
     await saveSiteContent(content);
@@ -487,7 +487,7 @@ describe("SQLite registration store", () => {
     expect(migrated.version).toBe(defaultSiteContent.version);
     expect(migrated.gallery[0]?.src).toBe(defaultSiteContent.gallery[0]?.src);
     expect(migrated.gallery[1]?.src).toBe(defaultSiteContent.gallery[1]?.src);
-    expect(migrated.gallery[1]?.position).toBe("38% 61%");
+    expect(migrated.gallery[1]?.position).toBe(defaultSiteContent.gallery[1]?.position);
     expect(migrated.gallery[2]?.src).toBe("/api/uploads/custom-artist.webp");
     expect(migrated.gallery[3]?.src).toBe(defaultSiteContent.gallery[3]?.src);
     expect(migrated.gallery[4]?.src).toBe(defaultSiteContent.gallery[4]?.src);

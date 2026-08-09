@@ -13,7 +13,6 @@ import { SocialIcon } from "@/components/social-icon";
 import { TrackedCalendarLink } from "@/components/tracked-calendar-link";
 import { VisitRules } from "@/components/visit-rules";
 import {
-  artistImages,
   artists,
   festival as campaignFestival,
   festivalRecord,
@@ -315,11 +314,11 @@ export default async function Home() {
                 >
                   <div className="festival-artist-image">
                     <Image
-                      alt={artistImages[index]?.alt || `Выступление ${artist}`}
+                      alt={gallery[index]?.alt || `Выступление ${artist}`}
                       fill
                       sizes="(max-width: 620px) 100vw, (max-width: 980px) 50vw, 34vw"
-                      src={artistImages[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}
-                      style={{ objectPosition: artistImages[index]?.position }}
+                      src={gallery[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}
+                      style={{ objectPosition: gallery[index]?.position }}
                     />
                   </div>
                   <div className="festival-artist-name">
@@ -409,9 +408,6 @@ export default async function Home() {
               {program.map((item, index) => (
                 <li data-reveal key={`${item.time}-${item.title}`} style={revealStyle(index % 6)}>
                   <time>{item.time}</time>
-                  <span className="festival-timeline-marker" aria-hidden="true">
-                    <i />
-                  </span>
                   <div className="festival-timeline-copy">
                     <h3>{item.title}</h3>
                     <p>{item.description}</p>

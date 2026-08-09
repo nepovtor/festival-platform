@@ -2468,9 +2468,7 @@ body {
 }
 
 .festival-program-meta > * + *::before {
-  content: "●";
-  margin-right: 18px;
-  color: var(--festival-brown);
+  content: none;
 }
 
 .festival-timeline {
@@ -2484,7 +2482,7 @@ body {
   position: relative;
   min-height: 150px;
   display: grid;
-  grid-template-columns: 280px 52px 1fr;
+  grid-template-columns: 280px 1fr;
   align-items: start;
   border-top: 2px solid var(--festival-brown);
 }
@@ -2500,38 +2498,7 @@ body {
   white-space: nowrap;
 }
 
-.festival-timeline-marker {
-  position: relative;
-  align-self: stretch;
-  display: grid;
-  place-items: start center;
-  border-left: 2px solid var(--festival-brown);
-}
-
-.festival-timeline-marker::before {
-  content: "";
-  position: absolute;
-  top: 31px;
-  left: -13px;
-  width: 22px;
-  height: 22px;
-  border: 3px solid var(--festival-brown);
-  border-radius: 50%;
-  background: var(--festival-sand);
-}
-
-.festival-timeline-marker i {
-  position: absolute;
-  z-index: 2;
-  top: 39px;
-  left: -5px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--festival-green);
-}
-
-.festival-timeline-copy { padding: 27px 0 30px 28px; }
+.festival-timeline-copy { padding: 27px 0 30px 34px; }
 
 .festival-timeline-copy h3 {
   margin: 0 0 8px;
@@ -2696,7 +2663,7 @@ body {
 
 .visit-rules {
   padding: 88px 0 104px;
-  background: var(--festival-paper);
+  background: var(--festival-sand);
   color: #8a570e;
   font-family: var(--festival-display);
   text-align: center;
@@ -2986,7 +2953,7 @@ body {
   .festival-zone-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .festival-program-pack { opacity: 0.35; }
   .festival-timeline { width: min(930px, 100%); }
-  .festival-timeline li { grid-template-columns: 235px 46px 1fr; }
+  .festival-timeline li { grid-template-columns: 235px 1fr; }
   .festival-registration-grid { grid-template-columns: minmax(360px, 0.85fr) minmax(430px, 1fr); gap: 55px; }
   .festival-footer-inner { grid-template-columns: auto 1fr; }
   .festival-footer-facts,
@@ -3106,7 +3073,7 @@ body {
   .festival-zone-pills article { padding-inline: 18px; }
   .festival-program-pack { display: none; }
   .festival-timeline { width: 100%; }
-  .festival-timeline li { grid-template-columns: 190px 42px 1fr; }
+  .festival-timeline li { grid-template-columns: 190px 1fr; }
   .festival-timeline > li > time { padding-right: 20px; font-size: 1.5rem; }
   .festival-timeline-copy { padding-left: 20px; }
   .festival-registration-grid { min-height: 0; grid-template-columns: 1fr; gap: 40px; }
@@ -3245,20 +3212,16 @@ body {
   .festival-zone-pills article { min-height: 72px; padding: 12px 18px; }
   .festival-zone-pills h3 { font-size: 1.45rem; }
   .festival-program-meta { width: 100%; padding: 14px 17px; justify-content: center; flex-wrap: wrap; gap: 8px 13px; font-size: 0.62rem; }
-  .festival-program-meta > * + *::before { margin-right: 13px; }
-  .festival-timeline { padding-left: 15px; }
+  .festival-program-meta > * + *::before { content: none; }
+  .festival-timeline { padding-left: 0; }
   .festival-timeline li {
     min-height: 0;
-    padding: 25px 0 27px 28px;
+    padding: 25px 0 27px;
     display: block;
     border-top: 1px solid rgba(188, 122, 38, 0.72);
-    border-left: 2px solid var(--festival-brown);
   }
   .festival-timeline li:last-child { border-bottom-width: 1px; }
   .festival-timeline > li > time { padding: 0; display: block; color: var(--festival-green); font-size: 1.3rem; white-space: normal; }
-  .festival-timeline-marker { position: absolute; top: 25px; left: -1px; display: block; border: 0; }
-  .festival-timeline-marker::before { top: 0; left: -11px; width: 18px; height: 18px; background: var(--festival-sand); }
-  .festival-timeline-marker i { top: 7px; left: -4px; width: 6px; height: 6px; }
   .festival-timeline-copy { padding: 13px 0 0; }
   .festival-timeline-copy h3 { font-size: clamp(1.8rem, 9vw, 2.6rem); }
   .festival-timeline-copy p { font-size: 0.86rem; }

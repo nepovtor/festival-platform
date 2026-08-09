@@ -260,6 +260,14 @@ const legacyArtistGallerySourcesV5 = [
   "/images/evening-concert.webp",
 ] as const;
 
+const addedArtistGallerySourcesV6 = [
+  "/images/artists/police-in-paris.jpg",
+  "/images/artists/parade-of-planets.jpg",
+  "/images/artists/borisovskiy-trakt.jpg",
+  "/images/artists/wasssup.jpg",
+  "/images/artists/huracan.jpg",
+] as const;
+
 function migrateLegacyArtistGalleryDefaults(
   gallery: SiteContent["gallery"],
   defaults: SiteContent["gallery"],
@@ -272,6 +280,30 @@ function migrateLegacyArtistGalleryDefaults(
         ...item,
         src: replacement.src,
         alt: replacement.alt,
+      };
+    }
+    return item;
+  });
+}
+
+function migrateAddedArtistGalleryDefaults(
+  gallery: SiteContent["gallery"],
+  defaults: SiteContent["gallery"],
+) {
+  return gallery.map((item, index) => {
+    const replacement = defaults[index];
+    if (
+      replacement &&
+      item?.src &&
+      addedArtistGallerySourcesV6.includes(
+        item.src as (typeof addedArtistGallerySourcesV6)[number],
+      )
+    ) {
+      return {
+        ...item,
+        src: replacement.src,
+        alt: replacement.alt,
+        position: replacement.position,
       };
     }
     return item;
@@ -798,6 +830,12 @@ export async function getSiteContent(): Promise<SiteContent> {
   );
   if (storedVersion < 6) {
     normalized.gallery = migrateLegacyArtistGalleryDefaults(
+      normalized.gallery,
+      defaults.gallery,
+    );
+  }
+  if (storedVersion < 7) {
+    normalized.gallery = migrateAddedArtistGalleryDefaults(
       normalized.gallery,
       defaults.gallery,
     );
