@@ -28,32 +28,32 @@ const artistPosterItems = [
   {
     className: "artist-poster-police",
     name: "Police in Paris",
-    src: "/images/artists/police-in-paris.webp",
+    src: "/images/artists/police-in-paris.jpg",
   },
   {
     className: "artist-poster-parade",
     name: "Parade of Planets",
-    src: "/images/artists/parade-of-planets.webp",
+    src: "/images/artists/parade-of-planets.jpg",
   },
   {
     className: "artist-poster-hurakan",
     name: "Кавер-группа «Хуракан»",
-    src: "/images/artists/hurakan.webp",
+    src: "/images/artists/hurakan-real.webp",
   },
   {
     className: "artist-poster-wasssup",
     name: "WASSSUP",
-    src: "/images/artists/wasssup.webp",
+    src: "/images/artists/wasssup.jpg",
   },
   {
     className: "artist-poster-dj",
     name: "DJ Antono Kostritsky",
-    src: "/images/artists/dj-antono-kostritsky.webp",
+    src: "/images/artists/dj-antono-kostritsky.jpg",
   },
   {
     className: "artist-poster-trakt",
     name: "Борисовский тракт",
-    src: "/images/artists/borisovskiy-trakt.webp",
+    src: "/images/artists/borisovskiy-trakt.jpg",
   },
 ] as const;
 
