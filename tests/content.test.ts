@@ -67,10 +67,11 @@ describe("канонические данные фестиваля", () => {
   it("сохраняет согласованный порядок артистов на десктопе", () => {
     expect(artists).toEqual([
       "Police in Paris",
-      "Parade of Planets",
-      "Борисовский тракт",
       "WASSSUP",
+      "Parade of Planets",
       "Кавер-группа «Хуракан»",
+      "DJ Antono Kostritsky",
+      "Борисовский тракт",
     ]);
   });
 

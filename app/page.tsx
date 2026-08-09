@@ -22,6 +22,39 @@ export const dynamic = "force-dynamic";
 
 const loadSiteContent = cache(getSiteContent);
 
+const artistPosterItems = [
+  {
+    className: "artist-poster-police",
+    name: "Police in Paris",
+    src: "/images/artists/police-in-paris.jpg",
+  },
+  {
+    className: "artist-poster-wasssup",
+    name: "WASSSUP",
+    src: "/images/artists/wasssup.jpg",
+  },
+  {
+    className: "artist-poster-parade",
+    name: "Parade of Planets",
+    src: "/images/artists/parade-of-planets.jpg",
+  },
+  {
+    className: "artist-poster-hurakan",
+    name: "Кавер-группа «Хуракан»",
+    src: "/images/artists/hurakan-real.webp",
+  },
+  {
+    className: "artist-poster-dj",
+    name: "DJ Antono Kostritsky",
+    src: "/images/artists/dj-antono-kostritsky.jpg",
+  },
+  {
+    className: "artist-poster-trakt",
+    name: "Борисовский тракт",
+    src: "/images/artists/borisovskiy-trakt.jpg",
+  },
+] as const;
+
 function compactDate(value: string) {
   return value.replace(/\s+\d{4}\s*$/u, "").trim();
 }
@@ -103,7 +136,7 @@ export default async function Home() {
             Грибной фестиваль Lay’s
           </h1>
           <Image
-            alt="Афиша грибного фестиваля Lay’s: 6 августа, стадион «Динамо», вход бесплатный"
+            alt="Афиша грибного фестиваля Lay’s: 16 августа, стадион «Динамо», вход бесплатный"
             className="festival-poster-image"
             height={1411}
             priority
@@ -112,8 +145,11 @@ export default async function Home() {
             width={1114}
           />
 
+          <span className="festival-poster-date" aria-label={`Дата фестиваля: ${dateShort}`}>
+            {dateShort}
+          </span>
+
           <span className="festival-poster-anchor festival-poster-about-anchor" id="about" />
-          <span className="festival-poster-anchor festival-poster-artists-anchor" id="artists" />
 
           <nav className="festival-poster-hotspots" aria-label="Навигация по афише">
             <a className="poster-hotspot poster-hotspot-about" href="#about">
@@ -135,6 +171,40 @@ export default async function Home() {
               <span>Зарегистрироваться</span>
             </a>
           </nav>
+        </section>
+
+        <section
+          className="festival-artists festival-artists-continuation festival-section"
+          id="artists"
+          aria-labelledby="artists-title"
+        >
+          <div className="festival-shell">
+            <header className="festival-heading festival-heading-centered" data-reveal>
+              <div className="festival-heading-rule" aria-hidden="true" />
+              <h2 id="artists-title">Тот самый вкус, та самая музыка</h2>
+              <div className="festival-heading-rule" aria-hidden="true" />
+            </header>
+
+            <div className="festival-artist-poster" data-reveal aria-label="Артисты фестиваля">
+              {artistPosterItems.map((artist, index) => (
+                <article
+                  className={`artist-poster-item ${artist.className}`}
+                  key={artist.name}
+                  style={revealStyle(index)}
+                >
+                  <div className="artist-poster-photo">
+                    <Image
+                      alt={artist.name}
+                      fill
+                      sizes="(max-width: 700px) 64vw, 30vw"
+                      src={artist.src}
+                    />
+                  </div>
+                  <h3>{artist.name}</h3>
+                </article>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section className="festival-zones festival-section" id="zones" aria-labelledby="zones-title">

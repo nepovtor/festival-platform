@@ -20,7 +20,7 @@ export const festival = {
     {
       title: "Музыка весь день",
       description:
-        "Пять артистов и десять часов живой фестивальной программы под открытым небом.",
+        "Шесть артистов и десять часов живой фестивальной программы под открытым небом.",
     },
     {
       title: "Для всей семьи",
@@ -32,10 +32,11 @@ export const festival = {
 
 export const artists = [
   "Police in Paris",
-  "Parade of Planets",
-  "Борисовский тракт",
   "WASSSUP",
+  "Parade of Planets",
   "Кавер-группа «Хуракан»",
+  "DJ Antono Kostritsky",
+  "Борисовский тракт",
 ] as const;
 
 export const festivalRecord = {
