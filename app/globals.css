@@ -2749,27 +2749,12 @@ body {
   height: 132px;
   display: grid;
   place-items: center;
-  color: #8a570e;
-  border: 3px solid currentColor;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.visit-rule-icon::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 140%;
-  height: 3px;
-  border-radius: 999px;
-  background: currentColor;
-  transform: translate(-50%, -50%) rotate(45deg);
+  overflow: visible;
 }
 
 .visit-rule-icon img {
-  width: 60%;
-  height: 60%;
+  width: 100%;
+  height: 100%;
   display: block;
   object-fit: contain;
 }
@@ -3241,9 +3226,7 @@ body {
   .visit-rule-icon {
     width: 120px;
     height: 120px;
-    border-width: 2.7px;
   }
-  .visit-rule-icon::after { height: 2.7px; }
   .visit-rules-list p {
     margin-top: 8px;
     font-size: 0.78rem;
