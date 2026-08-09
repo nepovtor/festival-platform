@@ -127,6 +127,83 @@ export default async function Home() {
       <main className="festival-2026" id="main-content">
         <FestivalMotion />
 
+        <section className="festival-mobile-cover" aria-labelledby="mobile-hero-title">
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="festival-mobile-cover-background"
+            fill
+            priority
+            sizes="(max-width: 700px) 100vw, 1px"
+            src="/images/hero-festival.webp"
+          />
+          <div className="festival-mobile-cover-shade" aria-hidden="true" />
+
+          <header className="festival-mobile-cover-header">
+            <Image
+              alt="Lay’s"
+              height={58}
+              priority
+              src="/images/lays-logo-pack-cutout.webp"
+              width={58}
+            />
+            <a href="#registration">Регистрация</a>
+          </header>
+
+          <div className="festival-mobile-cover-copy">
+            <p>Lay’s представляет</p>
+            <h1 id="mobile-hero-title">
+              Грибной
+              <span>фестиваль</span>
+            </h1>
+            <a className="festival-mobile-cover-button" href="#registration">
+              Зарегистрироваться
+            </a>
+          </div>
+
+          <div className="festival-mobile-cover-product" aria-hidden="true">
+            <span />
+            <Image
+              alt=""
+              height={768}
+              loading="eager"
+              sizes="230px"
+              src={heroImage}
+              style={{ height: "auto" }}
+              width={577}
+            />
+          </div>
+
+          <dl className="festival-mobile-cover-facts">
+            <div>
+              <dt>Дата</dt>
+              <dd>{dateShort}</dd>
+            </div>
+            <div>
+              <dt>Время</dt>
+              <dd>{festival.time}</dd>
+            </div>
+            <div>
+              <dt>Место</dt>
+              <dd>{placeShort}</dd>
+            </div>
+            <div>
+              <dt>Вход</dt>
+              <dd>{campaignFestival.admission}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section className="festival-mobile-about" aria-labelledby="mobile-about-title">
+          <p className="festival-section-index">01 / О фестивале</p>
+          <h2 id="mobile-about-title">Главное грибное событие этого лета</h2>
+          <p>{festival.about}</p>
+          <div className="festival-mobile-about-place">
+            <strong>{placeShort}</strong>
+            <span>{addressShort}</span>
+          </div>
+        </section>
+
         <section
           className="festival-poster-stage"
           id="top"

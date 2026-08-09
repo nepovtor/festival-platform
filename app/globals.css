@@ -3838,7 +3838,7 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-@media (max-width: 560px) {
+@media (max-width: 700px) {
   .festival-poster-stage {
     width: 100%;
   }
@@ -3914,5 +3914,316 @@ body {
     min-height: 36px;
     margin-top: -13px;
     font-size: clamp(0.68rem, 3.2vw, 0.92rem);
+  }
+}
+
+/* Purpose-built mobile landing ------------------------------------------------ */
+
+.festival-mobile-cover,
+.festival-mobile-about {
+  display: none;
+}
+
+.festival-mobile-cover {
+  position: relative;
+}
+
+@media (max-width: 700px) {
+  .festival-poster-stage {
+    display: none;
+  }
+
+  .festival-mobile-cover {
+    min-height: 760px;
+    display: block;
+    overflow: hidden;
+    isolation: isolate;
+    background: #078fc8;
+    color: white;
+  }
+
+  .festival-mobile-cover-background {
+    z-index: -3;
+    object-fit: cover;
+    object-position: 55% center;
+    filter: saturate(0.82) contrast(1.04);
+  }
+
+  .festival-mobile-cover-shade {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0, 117, 184, 0.74) 0%, rgba(1, 142, 202, 0.78) 45%, rgba(15, 74, 76, 0.62) 100%),
+      radial-gradient(circle at 50% 22%, rgba(50, 189, 234, 0.44), transparent 48%);
+  }
+
+  .festival-mobile-cover::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    right: -15%;
+    bottom: 116px;
+    left: -15%;
+    height: 112px;
+    border-radius: 50% 50% 0 0;
+    background: linear-gradient(180deg, rgba(237, 205, 146, 0), rgba(237, 205, 146, 0.24));
+  }
+
+  .festival-mobile-cover-header {
+    position: absolute;
+    z-index: 4;
+    top: 18px;
+    right: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .festival-mobile-cover-header img {
+    width: 52px;
+    height: 52px;
+    filter: drop-shadow(0 6px 9px rgba(57, 29, 1, 0.22));
+  }
+
+  .festival-mobile-cover-header a {
+    min-height: 38px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: var(--festival-red);
+    box-shadow: 0 7px 16px rgba(99, 21, 12, 0.27);
+    color: white;
+    font-size: 0.63rem;
+    font-weight: 900;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-cover-copy {
+    position: relative;
+    z-index: 2;
+    width: calc(100% - 36px);
+    margin-inline: auto;
+    padding-top: 102px;
+    display: grid;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .festival-mobile-cover-copy > p {
+    margin: 0 0 8px;
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-cover h1 {
+    margin: 0;
+    color: white;
+    font-family: var(--festival-display);
+    font-size: clamp(4.25rem, 20vw, 6rem);
+    font-weight: 900;
+    line-height: 0.72;
+    letter-spacing: -0.055em;
+    text-transform: uppercase;
+    text-shadow: 0 5px 18px rgba(0, 75, 126, 0.18);
+  }
+
+  .festival-mobile-cover h1 span {
+    margin-top: 15px;
+    display: block;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 0.51em;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    text-transform: none;
+    transform: rotate(-3deg);
+  }
+
+  .festival-mobile-cover-button {
+    min-height: 48px;
+    margin-top: 27px;
+    padding: 0 27px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 999px;
+    background: var(--festival-red);
+    box-shadow: 0 10px 21px rgba(92, 18, 11, 0.27);
+    color: white;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-cover-product {
+    position: absolute;
+    z-index: 1;
+    right: 50%;
+    bottom: 112px;
+    width: 210px;
+    height: 275px;
+    display: grid;
+    place-items: center;
+    transform: translateX(50%);
+  }
+
+  .festival-mobile-cover-product span {
+    position: absolute;
+    width: 240px;
+    aspect-ratio: 1;
+    border: 22px solid rgba(255, 231, 165, 0.2);
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 18px rgba(255, 241, 196, 0.12);
+  }
+
+  .festival-mobile-cover-product img {
+    position: relative;
+    width: 178px;
+    height: auto;
+    filter: drop-shadow(0 20px 18px rgba(37, 29, 4, 0.28));
+    transform: rotate(3deg);
+  }
+
+  .festival-mobile-cover-facts {
+    position: absolute;
+    z-index: 3;
+    right: 14px;
+    bottom: 14px;
+    left: 14px;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid rgba(255, 240, 204, 0.26);
+    border-radius: 20px;
+    background: rgba(170, 104, 21, 0.94);
+    box-shadow: 0 12px 26px rgba(72, 43, 4, 0.2);
+    backdrop-filter: blur(8px);
+  }
+
+  .festival-mobile-cover-facts > div {
+    min-width: 0;
+    padding: 12px 14px;
+  }
+
+  .festival-mobile-cover-facts > div:nth-child(odd) {
+    border-right: 1px solid rgba(255, 238, 194, 0.22);
+  }
+
+  .festival-mobile-cover-facts > div:nth-child(-n + 2) {
+    border-bottom: 1px solid rgba(255, 238, 194, 0.22);
+  }
+
+  .festival-mobile-cover-facts dt {
+    margin-bottom: 4px;
+    color: rgba(255, 239, 199, 0.75);
+    font-size: 0.55rem;
+    font-weight: 900;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-cover-facts dd {
+    margin: 0;
+    overflow: hidden;
+    color: white;
+    font-size: clamp(0.68rem, 3.1vw, 0.82rem);
+    font-weight: 900;
+    line-height: 1.12;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-about {
+    position: relative;
+    padding: 70px 24px 64px;
+    display: block;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 110% 20%, rgba(255, 245, 215, 0.6) 0 20%, transparent 20.5%),
+      radial-gradient(circle at -8% 92%, rgba(195, 128, 35, 0.12) 0 18%, transparent 18.5%),
+      var(--festival-sand);
+  }
+
+  .festival-mobile-about::after {
+    content: "♪";
+    position: absolute;
+    right: 20px;
+    bottom: 18px;
+    color: var(--festival-brown);
+    font: 900 2rem/1 var(--festival-display);
+    opacity: 0.25;
+    transform: rotate(14deg);
+  }
+
+  .festival-mobile-about .festival-section-index {
+    margin-bottom: 13px;
+  }
+
+  .festival-mobile-about h2 {
+    max-width: 350px;
+    margin: 0 0 24px;
+    color: var(--festival-brown-ink);
+    font-size: clamp(2.7rem, 13vw, 4rem);
+    font-weight: 900;
+    line-height: 0.92;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-about > p:not(.festival-section-index) {
+    max-width: 38rem;
+    margin-bottom: 28px;
+    color: #283312;
+    font-size: 0.93rem;
+    font-weight: 700;
+    line-height: 1.52;
+  }
+
+  .festival-mobile-about-place {
+    padding: 16px 18px;
+    display: grid;
+    gap: 3px;
+    border-left: 4px solid var(--festival-red);
+    border-radius: 0 14px 14px 0;
+    background: rgba(255, 244, 213, 0.62);
+  }
+
+  .festival-mobile-about-place strong {
+    color: var(--festival-brown-ink);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+  }
+
+  .festival-mobile-about-place span {
+    color: #435025;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+}
+
+@media (max-width: 380px) {
+  .festival-mobile-cover {
+    min-height: 720px;
+  }
+
+  .festival-mobile-cover h1 {
+    font-size: clamp(3.8rem, 19vw, 4.7rem);
+  }
+
+  .festival-mobile-cover-product {
+    bottom: 107px;
+    height: 245px;
+  }
+
+  .festival-mobile-cover-product img {
+    width: 158px;
   }
 }
