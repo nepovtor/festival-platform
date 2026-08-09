@@ -2744,31 +2744,34 @@ body {
 }
 
 .visit-rule-icon {
+  position: relative;
   width: 132px;
   height: 132px;
+  display: grid;
+  place-items: center;
   color: #8a570e;
-  overflow: visible;
+  border: 3px solid currentColor;
+  border-radius: 50%;
+  overflow: hidden;
 }
 
-.visit-rule-ring,
-.visit-rule-slash,
-.visit-rule-glyph path,
-.visit-rule-glyph circle,
-.visit-rule-glyph rect {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.75;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.visit-rule-icon::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
-.visit-rule-glyph circle {
-  fill: currentColor;
-  stroke: none;
-}
-
-.visit-rule-slash {
-  stroke-width: 3;
+.visit-rule-icon img {
+  width: 60%;
+  height: 60%;
+  display: block;
+  object-fit: contain;
 }
 
 .visit-rules-list p {
@@ -3238,14 +3241,9 @@ body {
   .visit-rule-icon {
     width: 120px;
     height: 120px;
+    border-width: 2.7px;
   }
-  .visit-rule-ring,
-  .visit-rule-slash,
-  .visit-rule-glyph path,
-  .visit-rule-glyph rect {
-    stroke-width: 2.95;
-  }
-  .visit-rule-glyph circle { stroke-width: 0; }
+  .visit-rule-icon::after { height: 2.7px; }
   .visit-rules-list p {
     margin-top: 8px;
     font-size: 0.78rem;
