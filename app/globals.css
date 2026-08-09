@@ -4232,7 +4232,7 @@ body {
 
 .festival-code-hero {
   position: relative;
-  min-height: clamp(790px, 63vw, 930px);
+  min-height: clamp(860px, 67vw, 980px);
   overflow: hidden;
   isolation: isolate;
   background: #079bd4;
@@ -4264,6 +4264,13 @@ body {
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 42px;
+  margin-top: 12px;
+  padding: 7px 10px 7px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 101, 157, 0.18);
+  box-shadow: 0 12px 30px rgba(0, 71, 117, 0.11);
+  backdrop-filter: blur(10px);
 }
 
 .festival-code-brand {
@@ -4335,10 +4342,35 @@ body {
 .festival-code-primary-button {
   min-width: 238px;
   min-height: 54px;
-  margin-top: 13px;
   padding: 0 32px;
   font-size: 0.76rem;
   border: 2px solid rgba(255, 255, 255, 0.26);
+}
+
+.festival-code-secondary-button {
+  min-width: 218px;
+  min-height: 54px;
+  padding: 0 29px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.76);
+  border-radius: 999px;
+  background: rgba(0, 109, 166, 0.2);
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  box-shadow: 0 10px 22px rgba(0, 72, 118, 0.12);
+  backdrop-filter: blur(8px);
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.festival-code-secondary-button:hover {
+  background: white;
+  color: #0879af;
+  transform: translateY(-2px);
 }
 
 .festival-code-header-button:hover,
@@ -4392,9 +4424,9 @@ body {
 }
 
 .festival-code-hero-logo {
-  width: 148px;
-  height: 148px;
-  margin-top: 18px;
+  width: 126px;
+  height: 126px;
+  margin-top: 14px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -4405,6 +4437,25 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
+}
+
+.festival-code-lead {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: white;
+  font-size: clamp(0.9rem, 1.15vw, 1.05rem);
+  font-weight: 750;
+  line-height: 1.42;
+  text-wrap: balance;
+  text-shadow: 0 3px 12px rgba(0, 70, 111, 0.34);
+}
+
+.festival-code-actions {
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
 .festival-code-facts {
@@ -4441,11 +4492,21 @@ body {
 
 .festival-code-facts dt {
   margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
   color: rgba(255, 239, 199, 0.74);
   font-size: 0.53rem;
   font-weight: 900;
   letter-spacing: 0.11em;
   text-transform: uppercase;
+}
+
+.festival-code-facts dt svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  stroke-width: 2;
 }
 
 .festival-code-facts dd {
@@ -4513,6 +4574,54 @@ body {
   font-weight: 700;
 }
 
+.festival-code-feature-list {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.festival-code-feature-list article {
+  position: relative;
+  min-height: 188px;
+  padding: 28px 28px 24px;
+  overflow: hidden;
+  border: 1px solid rgba(142, 84, 14, 0.13);
+  border-radius: 22px;
+  background: rgba(255, 245, 218, 0.7);
+  box-shadow: 0 16px 36px rgba(104, 61, 9, 0.09);
+}
+
+.festival-code-feature-list article > span {
+  position: absolute;
+  top: 13px;
+  right: 17px;
+  color: var(--festival-brown);
+  font-size: 2.7rem;
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.16;
+}
+
+.festival-code-feature-list h3 {
+  max-width: 80%;
+  margin: 0 0 13px;
+  color: var(--festival-brown-ink);
+  font-size: clamp(1.65rem, 2.3vw, 2.25rem);
+  font-weight: 900;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.festival-code-feature-list p {
+  margin: 0;
+  color: #3f4c25;
+  font-size: 0.88rem;
+  font-weight: 650;
+  line-height: 1.48;
+}
+
 @media (max-width: 900px) {
   .festival-code-header {
     width: calc(100% - 36px);
@@ -4530,7 +4639,7 @@ body {
   }
 
   .festival-code-hero {
-    min-height: 780px;
+    min-height: 870px;
   }
 
   .festival-code-hero-copy {
@@ -4559,11 +4668,15 @@ body {
     grid-template-columns: 1fr;
     gap: 34px;
   }
+
+  .festival-code-feature-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 700px) {
   .festival-code-hero {
-    min-height: 735px;
+    min-height: 850px;
   }
 
   .festival-code-hero-background {
@@ -4605,12 +4718,27 @@ body {
   }
 
   .festival-code-hero-logo {
-    width: 108px;
-    height: 108px;
+    width: 96px;
+    height: 96px;
     margin-top: 15px;
   }
 
-  .festival-code-primary-button {
+  .festival-code-lead {
+    max-width: 340px;
+    margin-top: 9px;
+    font-size: 0.82rem;
+  }
+
+  .festival-code-actions {
+    width: min(330px, 100%);
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .festival-code-primary-button,
+  .festival-code-secondary-button {
     min-width: 0;
     min-height: 46px;
     padding-inline: 25px;
@@ -4648,11 +4776,16 @@ body {
   .festival-code-about-copy > p {
     font-size: 0.92rem;
   }
+
+  .festival-code-feature-list article {
+    min-height: 0;
+    padding: 24px 22px 21px;
+  }
 }
 
 @media (max-width: 390px) {
   .festival-code-hero {
-    min-height: 700px;
+    min-height: 820px;
   }
 
   .festival-code-hero-copy {
