@@ -127,54 +127,59 @@ export default async function Home() {
       <main className="festival-2026" id="main-content">
         <FestivalMotion />
 
-        <section className="festival-mobile-cover" aria-labelledby="mobile-hero-title">
+        <section className="festival-code-hero" id="top" aria-labelledby="festival-hero-title">
           <Image
-            alt=""
-            aria-hidden="true"
-            className="festival-mobile-cover-background"
+            alt="Арки у стадиона «Динамо»"
+            className="festival-code-hero-background"
             fill
             priority
-            sizes="(max-width: 700px) 100vw, 1px"
-            src="/images/hero-festival.webp"
+            sizes="100vw"
+            src="/images/dinamo-arches-hero.png"
           />
-          <div className="festival-mobile-cover-shade" aria-hidden="true" />
+          <div className="festival-code-hero-shade" aria-hidden="true" />
 
-          <header className="festival-mobile-cover-header">
-            <Image
-              alt="Lay’s"
-              height={58}
-              priority
-              src="/images/lays-logo-pack-cutout.webp"
-              width={58}
-            />
-            <a href="#registration">Регистрация</a>
+          <header className="festival-code-header">
+            <a className="festival-code-brand" href="#top" aria-label="Lay’s — наверх">
+              <Image
+                alt="Lay’s"
+                height={62}
+                priority
+                src="/images/lays-logo-pack-cutout.webp"
+                width={62}
+              />
+            </a>
+            <nav aria-label="Основная навигация">
+              <a href="#about">О фестивале</a>
+              <a href="#artists">Артисты</a>
+              <a href="#zones">Развлечения</a>
+              <a href="#program">Программа</a>
+            </nav>
+            <a className="festival-code-header-button" href="#registration">
+              Зарегистрироваться
+            </a>
           </header>
 
-          <div className="festival-mobile-cover-copy">
-            <p>Lay’s представляет</p>
-            <h1 id="mobile-hero-title">
+          <div className="festival-code-hero-copy">
+            <p className="festival-code-eyebrow">Главное грибное событие лета</p>
+            <h1 id="festival-hero-title">
               Грибной
               <span>фестиваль</span>
             </h1>
-            <a className="festival-mobile-cover-button" href="#registration">
+            <div className="festival-code-hero-logo">
+              <Image
+                alt="Lay’s"
+                height={166}
+                priority
+                src="/images/lays-logo-pack-cutout.webp"
+                width={166}
+              />
+            </div>
+            <a className="festival-code-primary-button" href="#registration">
               Зарегистрироваться
             </a>
           </div>
 
-          <div className="festival-mobile-cover-product" aria-hidden="true">
-            <span />
-            <Image
-              alt=""
-              height={768}
-              loading="eager"
-              sizes="230px"
-              src={heroImage}
-              style={{ height: "auto" }}
-              width={577}
-            />
-          </div>
-
-          <dl className="festival-mobile-cover-facts">
+          <dl className="festival-code-facts" aria-label="Информация о фестивале">
             <div>
               <dt>Дата</dt>
               <dd>{dateShort}</dd>
@@ -184,70 +189,30 @@ export default async function Home() {
               <dd>{festival.time}</dd>
             </div>
             <div>
-              <dt>Место</dt>
-              <dd>{placeShort}</dd>
+              <dt>Место проведения</dt>
+              <dd>{placeShort}, {addressShort}</dd>
             </div>
             <div>
               <dt>Вход</dt>
-              <dd>{campaignFestival.admission}</dd>
+              <dd>{campaignFestival.age} · {campaignFestival.admission}</dd>
             </div>
           </dl>
         </section>
 
-        <section className="festival-mobile-about" aria-labelledby="mobile-about-title">
-          <p className="festival-section-index">01 / О фестивале</p>
-          <h2 id="mobile-about-title">Главное грибное событие этого лета</h2>
-          <p>{festival.about}</p>
-          <div className="festival-mobile-about-place">
-            <strong>{placeShort}</strong>
-            <span>{addressShort}</span>
+        <section className="festival-code-about" id="about" aria-labelledby="festival-about-title">
+          <div className="festival-shell festival-code-about-grid">
+            <div>
+              <p className="festival-section-index">01 / О фестивале</p>
+              <h2 id="festival-about-title">Главное грибное событие этого лета</h2>
+            </div>
+            <div className="festival-code-about-copy">
+              <p>{festival.about}</p>
+              <div className="festival-code-about-place">
+                <strong>{placeShort}</strong>
+                <span>{addressShort}</span>
+              </div>
+            </div>
           </div>
-        </section>
-
-        <section
-          className="festival-poster-stage"
-          id="top"
-          aria-labelledby="festival-poster-title"
-        >
-          <h1 className="festival-poster-accessible-title" id="festival-poster-title">
-            Грибной фестиваль Lay’s
-          </h1>
-          <Image
-            alt="Афиша грибного фестиваля Lay’s: 16 августа, стадион «Динамо», вход бесплатный"
-            className="festival-poster-image"
-            height={1411}
-            priority
-            sizes="100vw"
-            src="/images/festival-poster-reference-v2.png"
-            width={1114}
-          />
-
-          <span className="festival-poster-date" aria-label={`Дата фестиваля: ${dateShort}`}>
-            {dateShort}
-          </span>
-
-          <span className="festival-poster-anchor festival-poster-about-anchor" id="about" />
-
-          <nav className="festival-poster-hotspots" aria-label="Навигация по афише">
-            <a className="poster-hotspot poster-hotspot-about" href="#about">
-              <span>О фестивале</span>
-            </a>
-            <a className="poster-hotspot poster-hotspot-artists" href="#artists">
-              <span>Артисты</span>
-            </a>
-            <a className="poster-hotspot poster-hotspot-zones" href="#zones">
-              <span>Развлечения</span>
-            </a>
-            <a className="poster-hotspot poster-hotspot-program" href="#program">
-              <span>Программа</span>
-            </a>
-            <a className="poster-hotspot poster-hotspot-top-register" href="#registration">
-              <span>Зарегистрироваться</span>
-            </a>
-            <a className="poster-hotspot poster-hotspot-main-register" href="#registration">
-              <span>Зарегистрироваться</span>
-            </a>
-          </nav>
         </section>
 
         <section
