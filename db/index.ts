@@ -252,6 +252,32 @@ let database: Database.Database | null = null;
 let openedDatabasePath: string | null = null;
 const confirmationAttemptLeaseMs = 5 * 60 * 1_000;
 
+const legacyArtistGallerySourcesV5 = [
+  "/images/hero-festival.webp",
+  "/images/craft-workshop.webp",
+  "/images/evening-concert.webp",
+  "/images/hero-festival.webp",
+  "/images/evening-concert.webp",
+] as const;
+
+function migrateLegacyArtistGalleryDefaults(
+  gallery: SiteContent["gallery"],
+  defaults: SiteContent["gallery"],
+) {
+  return gallery.map((item, index) => {
+    const legacySource = legacyArtistGallerySourcesV5[index];
+    const replacement = defaults[index];
+    if (legacySource && replacement && item?.src === legacySource) {
+      return {
+        ...item,
+        src: replacement.src,
+        alt: replacement.alt,
+      };
+    }
+    return item;
+  });
+}
+
 export class RegistrationAlreadyExistsError extends Error {
   constructor() {
     super("Registration already exists");
@@ -750,9 +776,12 @@ export async function getSiteContent(): Promise<SiteContent> {
         "programImage",
         defaults.programImage,
       ),
-      gallery: Array.isArray(parsed.gallery)
-        ? (parsed.gallery as SiteContent["gallery"])
-        : defaults.gallery,
+      gallery: migrateLegacyArtistGalleryDefaults(
+        Array.isArray(parsed.gallery)
+          ? (parsed.gallery as SiteContent["gallery"])
+          : defaults.gallery,
+        defaults.gallery,
+      ),
     };
     getDatabase()
       .prepare(
@@ -767,6 +796,12 @@ export async function getSiteContent(): Promise<SiteContent> {
     defaults,
     storedVersion === 4,
   );
+  if (storedVersion < 6) {
+    normalized.gallery = migrateLegacyArtistGalleryDefaults(
+      normalized.gallery,
+      defaults.gallery,
+    );
+  }
   if (storedVersion < defaultSiteContent.version) {
     getDatabase()
       .prepare(

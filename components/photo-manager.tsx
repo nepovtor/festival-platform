@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { artists } from "@/content/festival";
 import type { SiteContent } from "@/content/site-content";
 import { adminFetch } from "@/lib/admin-csrf-client";
 
@@ -110,8 +111,8 @@ export function PhotoManager({ initialContent }: PhotoManagerProps) {
             <PhotoCard
               key={index}
               label={
-                index < 5
-                  ? `Карточка артиста ${index + 1}`
+                index < artists.length
+                  ? `Карточка: ${artists[index]}`
                   : "Фото feature-блока"
               }
               src={image.src}

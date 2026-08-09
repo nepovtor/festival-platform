@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { artists, festival, festivalRecord, zones } from "@/content/festival";
 import { program } from "@/content/program";
+import { attendanceRules } from "@/content/rules";
 import { defaultSiteContent } from "@/content/site-content";
 
 describe("канонические данные фестиваля", () => {
@@ -63,6 +64,16 @@ describe("канонические данные фестиваля", () => {
     expect(serialized).not.toContain("Polis in Paris");
   });
 
+  it("сохраняет согласованный порядок артистов на десктопе", () => {
+    expect(artists).toEqual([
+      "Police in Paris",
+      "Parade of Planets",
+      "Борисовский тракт",
+      "WASSSUP",
+      "Кавер-группа «Хуракан»",
+    ]);
+  });
+
   it("показывает рекорд отдельно от шести фестивальных зон", () => {
     expect(festivalRecord.title).toBe("Грибной рекорд");
     expect(zones).toHaveLength(6);
@@ -72,5 +83,16 @@ describe("канонические данные фестиваля", () => {
 
   it("не оставляет конечные точки в коротких описаниях", () => {
     expect(program.every((item) => !item.description.endsWith("."))).toBe(true);
+  });
+
+  it("содержит шесть согласованных правил посещения", () => {
+    expect(attendanceRules).toEqual([
+      { icon: "knife", label: "Холодное оружие" },
+      { icon: "firearm", label: "Огнестрельное оружие" },
+      { icon: "aerosol", label: "Распылять аэрозоли" },
+      { icon: "flammable", label: "Легковоспламеняющиеся вещества" },
+      { icon: "luggage", label: "Крупногабаритные сумки и рюкзаки" },
+      { icon: "rollers", label: "Роликовые коньки" },
+    ]);
   });
 });

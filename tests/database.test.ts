@@ -470,6 +470,29 @@ describe("SQLite registration store", () => {
     });
   });
 
+  it("upgrades v5 default artist images while preserving admin uploads", async () => {
+    const content = structuredClone(defaultSiteContent);
+    content.version = 5;
+    content.gallery = [
+      { ...content.gallery[0], src: "/images/hero-festival.webp" },
+      { ...content.gallery[1], src: "/images/craft-workshop.webp", position: "38% 61%" },
+      { ...content.gallery[2], src: "/api/uploads/custom-artist.webp" },
+      { ...content.gallery[3], src: "/images/hero-festival.webp" },
+      { ...content.gallery[4], src: "/images/evening-concert.webp" },
+      content.gallery[5],
+    ];
+    await saveSiteContent(content);
+
+    const migrated = await getSiteContent();
+    expect(migrated.version).toBe(defaultSiteContent.version);
+    expect(migrated.gallery[0]?.src).toBe(defaultSiteContent.gallery[0]?.src);
+    expect(migrated.gallery[1]?.src).toBe(defaultSiteContent.gallery[1]?.src);
+    expect(migrated.gallery[1]?.position).toBe("38% 61%");
+    expect(migrated.gallery[2]?.src).toBe("/api/uploads/custom-artist.webp");
+    expect(migrated.gallery[3]?.src).toBe(defaultSiteContent.gallery[3]?.src);
+    expect(migrated.gallery[4]?.src).toBe(defaultSiteContent.gallery[4]?.src);
+  });
+
   it("imports a legacy JSON store once without losing registrations", async () => {
     const registrations = Array.from({ length: 4 }, (_, index) => ({
       id: `legacy-${index + 1}`,

@@ -3,11 +3,17 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { cache, type CSSProperties } from "react";
 import { CookieConsent } from "@/components/cookie-consent";
+import { FestivalFactIcon } from "@/components/festival-fact-icon";
 import { FestivalMotion } from "@/components/festival-motion";
+import { FestivalTrophyIcon } from "@/components/festival-trophy-icon";
+import { FestivalZoneIcon, festivalZoneIconNames } from "@/components/festival-zone-icon";
 import { RegistrationForm } from "@/components/registration-form";
 import { SiteHeader } from "@/components/site-header";
+import { SocialIcon } from "@/components/social-icon";
 import { TrackedCalendarLink } from "@/components/tracked-calendar-link";
+import { VisitRules } from "@/components/visit-rules";
 import {
+  artistImages,
   artists,
   festival as campaignFestival,
   festivalRecord,
@@ -202,15 +208,15 @@ export default async function Home() {
 
           <dl className="festival-hero-facts" aria-label="Информация о фестивале">
             <div>
-              <dt aria-label="Дата">▣</dt>
+              <dt aria-label="Дата"><FestivalFactIcon name="calendar" /></dt>
               <dd>{dateShort}</dd>
             </div>
             <div>
-              <dt aria-label="Время">◷</dt>
+              <dt aria-label="Время"><FestivalFactIcon name="clock" /></dt>
               <dd>{festival.time}</dd>
             </div>
             <div className="festival-hero-location">
-              <dt aria-label="Место">⌖</dt>
+              <dt aria-label="Место"><FestivalFactIcon name="pin" /></dt>
               <dd>{placeShort}, {addressShort}</dd>
             </div>
             <div className="festival-hero-admission">
@@ -309,11 +315,11 @@ export default async function Home() {
                 >
                   <div className="festival-artist-image">
                     <Image
-                      alt={gallery[index]?.alt || `Выступление ${artist}`}
+                      alt={artistImages[index]?.alt || `Выступление ${artist}`}
                       fill
                       sizes="(max-width: 620px) 100vw, (max-width: 980px) 50vw, 34vw"
-                      src={gallery[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}
-                      style={{ objectPosition: gallery[index]?.position }}
+                      src={artistImages[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}
+                      style={{ objectPosition: artistImages[index]?.position }}
                     />
                   </div>
                   <div className="festival-artist-name">
@@ -348,22 +354,19 @@ export default async function Home() {
                 />
               </div>
               <div className="festival-record-copy">
-                <span className="festival-record-number">01</span>
                 <div>
                   <h3>{festivalRecord.title}</h3>
                   <p>{festivalRecord.description}</p>
                 </div>
+                <FestivalTrophyIcon />
               </div>
             </article>
 
             <div className="festival-zone-pills" aria-label="Фестивальные зоны">
               {zones.map((zone, index) => (
                 <article data-reveal key={zone.title} style={revealStyle(index)}>
-                  <span>{zone.number}</span>
                   <h3>{zone.title}</h3>
-                  <span className="festival-zone-symbol" aria-hidden="true">
-                    {index % 2 === 0 ? "✦" : "●"}
-                  </span>
+                  <FestivalZoneIcon name={festivalZoneIconNames[index] ?? "activity"} />
                 </article>
               ))}
             </div>
@@ -460,6 +463,8 @@ export default async function Home() {
             </div>
           </div>
         </section>
+
+        <VisitRules />
       </main>
 
       <footer className="festival-footer">
@@ -471,9 +476,9 @@ export default async function Home() {
             width={90}
           />
           <div className="festival-footer-socials" aria-label="Социальные сети Lay’s">
-            <a href="https://www.instagram.com/lays/" rel="noreferrer" target="_blank" aria-label="Lay’s в Instagram">IG</a>
-            <a href="https://www.tiktok.com/@lays" rel="noreferrer" target="_blank" aria-label="Lay’s в TikTok">TT</a>
-            <a href="https://vk.com/lays" rel="noreferrer" target="_blank" aria-label="Lay’s во ВКонтакте">VK</a>
+            <a href="https://www.instagram.com/lays/" rel="noreferrer" target="_blank" aria-label="Lay’s в Instagram"><SocialIcon name="instagram" /></a>
+            <a href="https://www.tiktok.com/@lays" rel="noreferrer" target="_blank" aria-label="Lay’s в TikTok"><SocialIcon name="tiktok" /></a>
+            <a href="https://vk.com/lays" rel="noreferrer" target="_blank" aria-label="Lay’s во ВКонтакте"><SocialIcon name="vk" /></a>
           </div>
           <div className="festival-footer-facts">
             <strong>{dateShort}, {festival.time}</strong>

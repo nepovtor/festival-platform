@@ -74,7 +74,7 @@ export function migrateRegistrationEmailV4(
 }
 
 export const defaultSiteContent: SiteContent = {
-  version: 5,
+  version: 6,
   festival: {
     name: defaultFestival.name,
     date: defaultFestival.date,
