@@ -13,12 +13,10 @@ import { SocialIcon } from "@/components/social-icon";
 import { TrackedCalendarLink } from "@/components/tracked-calendar-link";
 import { VisitRules } from "@/components/visit-rules";
 import {
-  artists,
   festival as campaignFestival,
   festivalRecord,
   zones,
 } from "@/content/festival";
-import type { ProgramContentItem } from "@/content/site-content";
 import { getSiteContent } from "@/db";
 import { buildFestivalCalendarUrl } from "@/lib/festival-calendar";
 
@@ -26,10 +24,37 @@ export const dynamic = "force-dynamic";
 
 const loadSiteContent = cache(getSiteContent);
 
-const artistFallbackImages = [
-  "/images/evening-concert.webp",
-  "/images/hero-festival.webp",
-  "/images/craft-workshop.webp",
+const artistPosterItems = [
+  {
+    className: "artist-poster-police",
+    name: "Police in Paris",
+    src: "/images/artists/police-in-paris.webp",
+  },
+  {
+    className: "artist-poster-parade",
+    name: "Parade of Planets",
+    src: "/images/artists/parade-of-planets.webp",
+  },
+  {
+    className: "artist-poster-hurakan",
+    name: "Кавер-группа «Хуракан»",
+    src: "/images/artists/hurakan.webp",
+  },
+  {
+    className: "artist-poster-wasssup",
+    name: "WASSSUP",
+    src: "/images/artists/wasssup.webp",
+  },
+  {
+    className: "artist-poster-dj",
+    name: "DJ Antono Kostritsky",
+    src: "/images/artists/dj-antono-kostritsky.webp",
+  },
+  {
+    className: "artist-poster-trakt",
+    name: "Борисовский тракт",
+    src: "/images/artists/borisovskiy-trakt.webp",
+  },
 ] as const;
 
 function compactDate(value: string) {
@@ -48,35 +73,6 @@ function compactAddress(value: string) {
     .replace(/^минск,?\s*/iu, "")
     .replace(/,?\s*корпус\s*/iu, "/")
     .trim();
-}
-
-function normalizeArtistName(value: string) {
-  return value
-    .toLocaleLowerCase("ru")
-    .replaceAll("ё", "е")
-    .replace(/[«»“”„'’()]/gu, " ")
-    .replace(/[^a-zа-я0-9]+/giu, " ")
-    .trim();
-}
-
-function artistTime(artist: string, program: ProgramContentItem[]) {
-  const ignored = new Set([
-    "выступление",
-    "группы",
-    "группа",
-    "кавер",
-    "бэнд",
-    "band",
-  ]);
-  const artistTokens = normalizeArtistName(artist)
-    .split(" ")
-    .filter((token) => token.length > 3 && !ignored.has(token));
-  const matchingItem = program.find((item) => {
-    const title = normalizeArtistName(item.title);
-    return artistTokens.some((token) => title.includes(token));
-  });
-
-  return matchingItem?.time ?? "В течение дня";
 }
 
 function revealStyle(index: number) {
@@ -304,27 +300,16 @@ export default async function Home() {
               <div className="festival-heading-rule" aria-hidden="true" />
             </header>
 
-            <div className="festival-artist-grid">
-              {artists.map((artist, index) => (
-                <article
-                  className={`festival-artist-card festival-artist-card-${(index % 5) + 1}`}
-                  data-reveal
-                  key={artist}
-                  style={revealStyle(index)}
-                >
-                  <div className="festival-artist-image">
-                    <Image
-                      alt={gallery[index]?.alt || `Выступление ${artist}`}
-                      fill
-                      sizes="(max-width: 620px) 100vw, (max-width: 980px) 50vw, 34vw"
-                      src={gallery[index]?.src ?? artistFallbackImages[index % artistFallbackImages.length]}
-                      style={{ objectPosition: gallery[index]?.position }}
-                    />
-                  </div>
-                  <div className="festival-artist-name">
-                    <h3>{artist}</h3>
-                    <span>{artistTime(artist, program)}</span>
-                  </div>
+            <div className="festival-artist-poster" data-reveal aria-label="Артисты фестиваля">
+              {artistPosterItems.map((artist, index) => (
+                <article className={`artist-poster-item ${artist.className}`} key={artist.name} style={revealStyle(index)}>
+                  <Image
+                    alt={artist.name}
+                    fill
+                    sizes="(max-width: 700px) 74vw, 390px"
+                    src={artist.src}
+                  />
+                  <h3>{artist.name}</h3>
                 </article>
               ))}
             </div>

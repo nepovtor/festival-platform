@@ -2234,77 +2234,121 @@ body {
   background: var(--festival-sand);
 }
 
-.festival-artist-grid {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 26px 22px;
-  align-items: start;
-}
-
-.festival-artist-card { min-width: 0; }
-.festival-artist-card-1,
-.festival-artist-card-2,
-.festival-artist-card-3,
-.festival-artist-card-4,
-.festival-artist-card-5,
-.festival-artist-card:nth-child(n + 6) { grid-column: auto; }
-
-.festival-artist-image {
+.festival-artist-poster {
   position: relative;
-  min-height: 310px;
+  width: min(398px, 100%);
+  aspect-ratio: 398 / 630;
+  margin: 0 auto;
   overflow: hidden;
-  border: 3px solid var(--festival-brown);
-  border-radius: 18px 18px 56% 56% / 18px 18px 18% 18%;
-  background: var(--festival-green);
-  box-shadow: 0 18px 36px rgba(78, 43, 7, 0.16);
+  background: #ffc43b;
+  box-shadow: 0 24px 44px rgba(126, 71, 8, 0.22);
 }
 
-.festival-artist-card-1 .festival-artist-image,
-.festival-artist-card-2 .festival-artist-image { min-height: 310px; }
-
-.festival-artist-image::after {
-  content: "";
+.artist-poster-item {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 45%, rgba(25, 43, 9, 0.42));
-}
-
-.festival-artist-image img {
-  object-fit: cover;
-  filter: saturate(0.92) contrast(1.04);
-  transition: transform 500ms ease, filter 500ms ease;
-}
-
-.festival-artist-name {
-  position: relative;
-  z-index: 2;
-  width: calc(100% - 42px);
-  min-height: 62px;
-  margin: -31px auto 0;
-  padding: 11px 23px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  border-radius: 999px;
-  background: var(--festival-brown-ink);
-  color: var(--festival-cream);
-  box-shadow: 0 9px 19px rgba(76, 42, 4, 0.2);
-}
-
-.festival-artist-name h3 {
+  z-index: 1;
   margin: 0;
-  font-size: clamp(1.25rem, 2.25vw, 2rem);
-  font-weight: 900;
-  line-height: 0.95;
-  text-transform: uppercase;
 }
 
-.festival-artist-name > span {
-  flex: 0 0 auto;
-  color: white;
-  font-size: 0.64rem;
-  font-weight: 900;
+.artist-poster-item img {
+  object-fit: contain;
+  filter:
+    drop-shadow(0 5px 0 rgba(255, 243, 206, 0.9))
+    drop-shadow(0 9px 9px rgba(103, 56, 8, 0.14));
+}
+
+.artist-poster-item h3 {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 2.5%;
+  min-width: 52%;
+  margin: 0;
+  padding: 6px 15px 5px;
+  border-radius: 999px;
+  background: #b67824;
+  color: #ffe9be;
+  font: 900 clamp(0.62rem, 1.45vw, 0.82rem)/1 var(--festival-display);
+  letter-spacing: 0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  box-shadow: 0 5px 8px rgba(114, 61, 8, 0.16);
+}
+
+.artist-poster-police {
+  top: 5%;
+  left: 5%;
+  width: 50%;
+  height: 29%;
+}
+
+.artist-poster-police h3 {
+  left: 54%;
+  bottom: 2%;
+}
+
+.artist-poster-parade {
+  top: 17.5%;
+  right: 4%;
+  width: 55%;
+  height: 31%;
+  z-index: 2;
+}
+
+.artist-poster-parade h3 {
+  bottom: 3%;
+  min-width: 78%;
+}
+
+.artist-poster-hurakan {
+  top: 49%;
+  left: 7%;
+  width: 42%;
+  height: 17%;
+}
+
+.artist-poster-hurakan h3 {
+  bottom: 1%;
+  min-width: 94%;
+  font-size: clamp(0.5rem, 1.2vw, 0.68rem);
+}
+
+.artist-poster-wasssup {
+  top: 43.5%;
+  right: 10%;
+  width: 31%;
+  height: 25%;
+  z-index: 3;
+}
+
+.artist-poster-wasssup h3 {
+  min-width: 70%;
+}
+
+.artist-poster-dj {
+  top: 65%;
+  left: 8%;
+  width: 43%;
+  height: 19%;
+}
+
+.artist-poster-dj h3 {
+  min-width: 88%;
+  font-size: clamp(0.48rem, 1.1vw, 0.66rem);
+}
+
+.artist-poster-trakt {
+  right: 4%;
+  bottom: 8%;
+  width: 47%;
+  height: 22%;
+}
+
+.artist-poster-trakt h3 {
+  min-width: 88%;
+  font-size: clamp(0.56rem, 1.25vw, 0.74rem);
 }
 
 .festival-music-ribbon {
@@ -2928,7 +2972,6 @@ body {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .festival-artist-card:hover .festival-artist-image img { transform: scale(1.045); filter: saturate(1.05) contrast(1.06); }
   .festival-record:hover .festival-record-image img { transform: scale(1.025); }
   .festival-zone-pills article:hover { background: var(--festival-green); color: var(--festival-paper); transform: translateY(-4px); }
   .festival-footer-socials a:hover { background: var(--festival-cream); color: var(--festival-brown-ink); transform: translateY(-2px); }
@@ -2946,10 +2989,6 @@ body {
   .festival-return-label { right: 0; }
   .festival-about-grid { grid-template-columns: minmax(0, 0.95fr) minmax(390px, 1.05fr); gap: 52px; }
   .festival-about-visual { min-height: 530px; }
-  .festival-artist-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .festival-artist-card-1 .festival-artist-image,
-  .festival-artist-card-2 .festival-artist-image,
-  .festival-artist-image { min-height: 300px; }
   .festival-zone-pills { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .festival-program-pack { opacity: 0.35; }
   .festival-timeline { width: min(930px, 100%); }
@@ -3053,19 +3092,6 @@ body {
   .festival-feature-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .festival-heading { margin-bottom: 46px; gap: 15px; }
   .festival-heading h2 { font-size: clamp(3.2rem, 9vw, 5rem); }
-  .festival-artist-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 16px; }
-  .festival-artist-card,
-  .festival-artist-card-1,
-  .festival-artist-card-2,
-  .festival-artist-card-3,
-  .festival-artist-card-4,
-  .festival-artist-card-5,
-  .festival-artist-card:nth-child(n + 6) { grid-column: auto; }
-  .festival-artist-image,
-  .festival-artist-card-1 .festival-artist-image,
-  .festival-artist-card-2 .festival-artist-image { min-height: 300px; }
-  .festival-artist-name { width: calc(100% - 24px); min-height: 56px; padding-inline: 17px; }
-  .festival-artist-name h3 { font-size: 1.35rem; }
   .festival-record-image { min-height: 420px; }
   .festival-record-copy { min-height: 0; padding: 30px; }
   .festival-record-copy h3 { font-size: clamp(2.8rem, 8vw, 4rem); }
@@ -3153,51 +3179,8 @@ body {
     overflow: hidden;
     background: #f7c84d;
   }
-  .festival-artist-grid {
-    grid-template-columns: 1fr;
-    gap: 24px;
-    align-items: start;
-  }
-  .festival-artist-card,
-  .festival-artist-card-1,
-  .festival-artist-card-2,
-  .festival-artist-card-3,
-  .festival-artist-card-4,
-  .festival-artist-card-5 {
-    min-width: 0;
-    justify-self: stretch;
-    grid-column: auto;
-    order: initial;
-  }
-  .festival-artist-image,
-  .festival-artist-card-1 .festival-artist-image,
-  .festival-artist-card-2 .festival-artist-image {
-    min-height: 0;
-    aspect-ratio: 1.2;
-    border-width: 2px;
-    border-radius: 18px 18px 46% 46% / 18px 18px 14% 14%;
-    box-shadow: 0 13px 25px rgba(78, 43, 7, 0.16);
-  }
-  .festival-artist-card-1 .festival-artist-image,
-  .festival-artist-card-3 .festival-artist-image,
-  .festival-artist-card-4 .festival-artist-image,
-  .festival-artist-card-5 .festival-artist-image { aspect-ratio: 1.2; }
-  .festival-artist-name {
-    width: calc(100% - 12px);
-    min-height: 50px;
-    margin-top: -24px;
-    padding: 8px 13px;
-    display: grid;
-    justify-content: stretch;
-    gap: 3px;
-    text-align: center;
-  }
-  .festival-artist-name h3 {
-    font-size: clamp(0.88rem, 4.25vw, 1.35rem);
-    line-height: 1;
-    text-wrap: balance;
-  }
-  .festival-artist-name > span { font-size: 0.57rem; }
+  .festival-artist-poster { width: min(398px, calc(100vw - 42px)); }
+  .artist-poster-item h3 { padding-inline: 10px; font-size: clamp(0.46rem, 2.1vw, 0.72rem); }
   .festival-music-ribbon { height: 58px; }
   .festival-record { border-width: 2px; border-radius: 12px; }
   .festival-record-image { min-height: 285px; }
@@ -3300,9 +3283,7 @@ body {
   .festival-hero-product { min-height: 365px; }
   .festival-primary-button { gap: 18px; }
   .festival-about-visual { min-height: 390px; }
-  .festival-artist-grid { gap-block: 21px; }
-  .festival-artist-name { width: calc(100% - 8px); padding-inline: 9px; }
-  .festival-artist-name h3 { font-size: clamp(0.78rem, 4.3vw, 1rem); }
+  .festival-artist-poster { width: calc(100vw - 28px); }
   .festival-zone-pills h3 { font-size: 1.25rem; }
   .festival-registration-form .registration-form .consent-row label { font-size: 0.63rem; }
 }
