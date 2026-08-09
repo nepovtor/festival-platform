@@ -3275,3 +3275,553 @@ body {
   .festival-motion-ready [data-reveal] { opacity: 1; transform: none; }
   [data-parallax] { translate: 0 0 !important; }
 }
+
+/* Reference poster composition ------------------------------------------------ */
+
+.site-header,
+.site-header-inner {
+  min-height: 68px;
+}
+
+.site-header-inner {
+  width: min(1320px, calc(100% - 64px));
+}
+
+.header-brand img {
+  width: 48px;
+  height: 48px;
+}
+
+.site-navigation {
+  grid-template-columns: repeat(4, auto) 1fr auto;
+  gap: clamp(18px, 2.2vw, 34px);
+}
+
+.site-navigation > a:not(.header-register) {
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+}
+
+.site-navigation .header-register {
+  min-width: 174px;
+  min-height: 42px;
+  padding-inline: 22px;
+  font-size: 0.66rem;
+}
+
+.festival-hero {
+  min-height: 720px;
+  padding: 68px 0 104px;
+  overflow: hidden;
+  place-items: stretch;
+  background: #0a9ed8;
+}
+
+.festival-hero::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 68px 0 22%;
+  background:
+    radial-gradient(ellipse at 8% 22%, rgba(255, 255, 255, 0.62) 0 4%, rgba(255, 255, 255, 0.18) 9%, transparent 17%),
+    radial-gradient(ellipse at 92% 16%, rgba(255, 255, 255, 0.55) 0 4%, rgba(255, 255, 255, 0.14) 10%, transparent 18%);
+  pointer-events: none;
+}
+
+.festival-hero::after {
+  content: "";
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 116px;
+  background: var(--festival-sand);
+  clip-path: polygon(0 34%, 7% 46%, 17% 62%, 29% 77%, 42% 87%, 50% 90%, 58% 87%, 71% 77%, 83% 62%, 93% 46%, 100% 34%, 100% 100%, 0 100%);
+  pointer-events: none;
+}
+
+.festival-hero-background {
+  z-index: -2;
+  object-position: 50% 72%;
+  filter: saturate(0.92) contrast(1.06) brightness(1.08);
+  transform: scale(1.015);
+}
+
+.festival-hero-shade {
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(0, 160, 219, 0.95) 0%, rgba(0, 155, 216, 0.82) 38%, rgba(0, 145, 207, 0.32) 63%, rgba(7, 70, 75, 0.1) 78%, rgba(25, 43, 9, 0.16) 100%),
+    linear-gradient(90deg, rgba(0, 147, 205, 0.18), transparent 28%, transparent 72%, rgba(0, 147, 205, 0.18));
+}
+
+.festival-hero-inner,
+.festival-hero-inner.festival-shell {
+  min-height: 535px;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: start center;
+  gap: 0;
+}
+
+.festival-hero-copy {
+  width: 100%;
+  padding: 6px 0 74px;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  text-align: center;
+}
+
+.festival-hero h1 {
+  margin: 0;
+  display: grid;
+  justify-items: center;
+  color: white;
+  text-shadow: 0 5px 18px rgba(0, 74, 114, 0.23);
+}
+
+.festival-hero h1 .festival-hero-title-main {
+  display: block;
+  color: white;
+  font-size: clamp(7.6rem, 12.2vw, 11rem);
+  line-height: 0.78;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+}
+
+.festival-hero h1 .festival-hero-title-script {
+  display: block;
+  margin-top: 5px;
+  color: white;
+  font-family: "Brush Script MT", "Segoe Script", "URW Chancery L", cursive;
+  font-size: clamp(4.2rem, 6.5vw, 6.2rem);
+  font-style: italic;
+  font-weight: 700;
+  line-height: 0.72;
+  letter-spacing: -0.055em;
+  text-transform: none;
+  transform: rotate(-5deg);
+}
+
+.festival-hero-brand {
+  margin: 34px 0 0;
+  display: grid;
+  place-items: center;
+}
+
+.festival-hero-logo {
+  width: clamp(118px, 10vw, 154px);
+  height: clamp(118px, 10vw, 154px);
+  filter: drop-shadow(0 12px 16px rgba(80, 37, 0, 0.3));
+}
+
+.festival-hero .festival-primary-button {
+  min-height: 50px;
+  margin-top: 16px;
+  padding-inline: 33px;
+  font-size: 0.76rem;
+  box-shadow: 0 8px 17px rgba(91, 23, 13, 0.28);
+}
+
+.festival-hero-facts {
+  z-index: 6;
+  bottom: 18px;
+  width: min(1000px, calc(100% - 80px));
+  min-height: 56px;
+  background: #bd7922;
+}
+
+.festival-hero-facts > div {
+  min-height: 56px;
+}
+
+.festival-about {
+  min-height: 570px;
+  padding: 74px 0 44px;
+  overflow: hidden;
+  background: var(--festival-sand);
+}
+
+.festival-about::after,
+.festival-artists::before {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.18;
+  background:
+    radial-gradient(circle, var(--festival-brown-ink) 0 3px, transparent 3.5px) 0 0 / 92px 92px;
+}
+
+.festival-about::after {
+  inset: 0;
+  transform: rotate(10deg) scale(1.08);
+}
+
+.festival-about .festival-shell,
+.festival-artists .festival-shell {
+  position: relative;
+  z-index: 2;
+}
+
+.festival-about-grid {
+  grid-template-columns: minmax(0, 1.05fr) minmax(390px, 0.95fr);
+  gap: clamp(36px, 6vw, 86px);
+}
+
+.festival-about-copy h2 {
+  max-width: 720px;
+  margin-bottom: 20px;
+  font-size: clamp(4.5rem, 6.6vw, 6.1rem);
+  line-height: 0.88;
+}
+
+.festival-about-copy .festival-about-intro,
+.festival-about-copy > p:not(.festival-section-index) {
+  max-width: 650px;
+  margin-bottom: 10px;
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.42;
+}
+
+.festival-about-visual {
+  min-height: 445px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.festival-about-visual::after {
+  display: none;
+}
+
+.festival-about-rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(37vw, 470px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, rgba(255, 249, 239, 0.6) 0 34px, rgba(255, 233, 190, 0.26) 35px 66px);
+  transform: translate(-50%, -50%);
+}
+
+.festival-about-product {
+  z-index: 2;
+  right: auto;
+  bottom: -7%;
+  left: 50%;
+  width: min(28vw, 350px);
+  transform: translateX(-50%);
+}
+
+.festival-about-product img {
+  transform: rotate(4deg);
+  filter: drop-shadow(0 23px 18px rgba(76, 43, 5, 0.25));
+}
+
+.festival-about-badge,
+.festival-about-quality {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  place-content: center;
+  border-radius: 50%;
+  background: var(--festival-brown-ink);
+  color: white;
+  font-family: var(--festival-display);
+  font-weight: 900;
+  line-height: 0.86;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: 0 8px 20px rgba(80, 47, 7, 0.2);
+}
+
+.festival-about-badge {
+  top: 14%;
+  right: 1%;
+  width: 116px;
+  padding: 0;
+  aspect-ratio: 1;
+  border: 3px solid var(--festival-cream);
+  font-size: 1.18rem;
+  transform: rotate(7deg);
+}
+
+.festival-about-badge small,
+.festival-about-quality small {
+  margin-top: 6px;
+  display: block;
+  font-family: var(--festival-body);
+  font-size: 0.48rem;
+  line-height: 1.05;
+  letter-spacing: 0.06em;
+}
+
+.festival-about-quality {
+  top: 5%;
+  left: 3%;
+  width: 104px;
+  aspect-ratio: 1;
+  background: transparent;
+  color: var(--festival-brown-ink);
+  font-size: 1.45rem;
+  transform: rotate(-18deg);
+  box-shadow: none;
+}
+
+.festival-about-notes {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  color: var(--festival-brown-ink);
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.festival-about-notes span {
+  position: absolute;
+  font: 900 2.3rem/1 var(--festival-display);
+}
+
+.festival-about-notes span:nth-child(1) { top: 18%; left: 2%; transform: rotate(-17deg); }
+.festival-about-notes span:nth-child(2) { top: 70%; left: 21%; transform: rotate(14deg); }
+.festival-about-notes span:nth-child(3) { top: 23%; right: 27%; transform: rotate(18deg); }
+.festival-about-notes span:nth-child(4) { right: 2%; bottom: 16%; transform: rotate(-14deg); }
+.festival-about-notes span:nth-child(5) { right: 47%; bottom: 5%; transform: rotate(12deg); }
+
+.festival-artists {
+  padding: 50px 0 132px;
+  overflow: hidden;
+  background: var(--festival-sand);
+}
+
+.festival-artists::before {
+  inset: 0;
+  transform: rotate(-8deg) scale(1.08);
+}
+
+.festival-artists .festival-heading {
+  margin-bottom: 44px;
+}
+
+.festival-artists .festival-heading h2 {
+  font-size: clamp(3.4rem, 5.1vw, 4.7rem);
+  white-space: nowrap;
+}
+
+.festival-artist-poster {
+  width: min(1120px, 100%);
+  margin-inline: auto;
+  padding: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 44px 24px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.artist-poster-item,
+.artist-poster-item:nth-child(even) {
+  --poster-shift: 0;
+  transform: none;
+}
+
+.artist-poster-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1.05;
+  border: 0;
+  border-radius: 42% 42% 16px 16px;
+  background: #efd39a;
+  box-shadow: 0 17px 28px rgba(104, 61, 9, 0.13);
+}
+
+.artist-poster-photo img {
+  object-fit: cover;
+}
+
+.artist-poster-item h3 {
+  z-index: 2;
+  width: 88%;
+  max-width: none;
+  min-height: 42px;
+  margin: -18px 0 0;
+  padding: 9px 18px 7px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #bd7922;
+  color: var(--festival-cream);
+  font-size: clamp(0.9rem, 1.45vw, 1.25rem);
+  line-height: 0.95;
+  box-shadow: 0 8px 17px rgba(77, 45, 5, 0.16);
+}
+
+@media (max-width: 960px) {
+  .site-header,
+  .site-header-inner { min-height: 64px; }
+  .festival-hero { min-height: 620px; padding: 64px 0 103px; }
+  .festival-hero-inner { min-height: 450px; padding: 0; }
+  .festival-hero-copy { padding: 8px 0 52px; }
+  .festival-hero h1 .festival-hero-title-main { font-size: clamp(6.4rem, 16vw, 8.8rem); }
+  .festival-hero h1 .festival-hero-title-script { font-size: clamp(3.8rem, 9vw, 5.4rem); }
+  .festival-hero-brand { margin-top: 36px; }
+  .festival-hero-facts { position: absolute; bottom: 17px; border-radius: 999px; grid-template-columns: 0.85fr 0.9fr 2fr 1.05fr; }
+  .festival-hero-facts > div { min-height: 56px; border-bottom: 0; }
+  .festival-hero-location,
+  .festival-hero-admission { grid-column: auto; }
+  .festival-hero-admission { justify-content: flex-end; }
+  .festival-about-grid { grid-template-columns: 1fr 0.9fr; gap: 32px; }
+  .festival-about-copy h2 { font-size: clamp(3.8rem, 8vw, 5rem); }
+  .festival-about-visual { min-height: 390px; }
+  .festival-about-rings { width: min(45vw, 410px); }
+  .festival-about-product { width: min(34vw, 310px); }
+  .festival-artist-poster { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .festival-artists .festival-heading h2 { white-space: normal; }
+}
+
+@media (max-width: 700px) {
+  .site-header-inner { width: calc(100% - 28px); }
+  .festival-hero { min-height: 650px; padding-bottom: 154px; }
+  .festival-hero::after { height: 132px; }
+  .festival-hero-inner { min-height: 420px; }
+  .festival-hero-copy { padding-top: 20px; }
+  .festival-hero h1 .festival-hero-title-main { font-size: clamp(4.4rem, 18vw, 6.7rem); }
+  .festival-hero h1 .festival-hero-title-script { margin-top: 8px; font-size: clamp(2.9rem, 12vw, 4.4rem); }
+  .festival-hero-logo { width: 112px; height: 112px; }
+  .festival-hero-brand { margin-top: 34px; }
+  .festival-hero .festival-primary-button { width: auto; min-height: 48px; margin-top: 12px; padding-inline: 28px; }
+  .festival-hero-facts {
+    bottom: 12px;
+    width: calc(100% - 28px);
+    padding: 5px 12px;
+    grid-template-columns: 1fr 1fr;
+    border-radius: 18px;
+  }
+  .festival-hero-facts > div { min-height: 48px; padding: 0 8px; }
+  .festival-hero-facts > div:nth-child(2) { border-right: 0; }
+  .festival-hero-location { grid-column: 1 / -1; border-top: 1px solid rgba(255, 233, 190, 0.28); border-right: 0; }
+  .festival-hero-admission { grid-column: 1 / -1; border-top: 1px solid rgba(255, 233, 190, 0.28); justify-content: flex-start; }
+  .festival-about { padding-top: 60px; }
+  .festival-about-grid { grid-template-columns: 1fr; gap: 24px; }
+  .festival-about-copy h2 { font-size: clamp(3.4rem, 14vw, 5rem); }
+  .festival-about-copy .festival-about-intro,
+  .festival-about-copy > p:not(.festival-section-index) { font-size: 0.92rem; }
+  .festival-about-visual { min-height: 420px; }
+  .festival-about-rings { width: min(92vw, 420px); }
+  .festival-about-product { width: min(65vw, 300px); }
+  .festival-about-quality { left: 2%; }
+  .festival-about-badge { right: 2%; }
+  .festival-artists { padding-top: 36px; }
+  .festival-artists .festival-heading { margin-bottom: 34px; }
+  .festival-artists .festival-heading h2 { font-size: clamp(2.55rem, 11vw, 4rem); }
+  .festival-artist-poster {
+    width: 100%;
+    padding: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px 14px;
+  }
+  .artist-poster-photo { width: 100%; border-width: 0; border-radius: 42% 42% 12px 12px; }
+  .artist-poster-item h3 { width: 94%; min-height: 34px; margin-top: -14px; padding: 7px 8px 6px; font-size: clamp(0.58rem, 2.8vw, 0.78rem); }
+}
+
+@media (max-width: 390px) {
+  .festival-hero { min-height: 620px; }
+  .festival-hero h1 .festival-hero-title-main { font-size: clamp(3.9rem, 18vw, 5.2rem); }
+  .festival-hero h1 .festival-hero-title-script { font-size: clamp(2.5rem, 12vw, 3.6rem); }
+  .festival-hero-logo { width: 98px; height: 98px; }
+  .festival-hero .festival-primary-button { padding-inline: 22px; font-size: 0.68rem; }
+  .festival-about-visual { min-height: 380px; }
+  .festival-about-badge { width: 94px; font-size: 0.96rem; }
+  .festival-about-quality { width: 88px; font-size: 1.18rem; }
+}
+
+/* Exact poster front page ------------------------------------------------------ */
+
+.festival-poster-stage {
+  position: relative;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  overflow: hidden;
+  background: var(--festival-sand);
+}
+
+.festival-poster-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.festival-poster-accessible-title,
+.poster-hotspot > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.festival-poster-hotspots {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  pointer-events: none;
+}
+
+.poster-hotspot {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  pointer-events: auto;
+}
+
+.poster-hotspot:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.poster-hotspot-about { top: 0.8%; left: 33.1%; width: 8.3%; height: 3.1%; }
+.poster-hotspot-artists { top: 0.8%; left: 41.7%; width: 6.5%; height: 3.1%; }
+.poster-hotspot-zones { top: 0.8%; left: 48.4%; width: 8.3%; height: 3.1%; }
+.poster-hotspot-program { top: 0.8%; left: 56.9%; width: 8.1%; height: 3.1%; }
+.poster-hotspot-top-register { top: 0.55%; left: 77.1%; width: 14.4%; height: 3.5%; }
+.poster-hotspot-main-register { top: 34.2%; left: 38.1%; width: 23.3%; height: 4.2%; }
+
+.festival-poster-anchor {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  scroll-margin-top: 80px;
+  pointer-events: none;
+}
+
+.festival-poster-about-anchor { top: 43%; }
+.festival-poster-artists-anchor { top: 76%; }
+
+@media (max-width: 560px) {
+  .festival-poster-stage {
+    width: 100%;
+  }
+
+  .poster-hotspot-top-register {
+    top: 0.35%;
+    left: 75.5%;
+    width: 17%;
+    height: 4%;
+  }
+
+  .poster-hotspot-main-register {
+    left: 35.5%;
+    width: 29%;
+    height: 4.8%;
+  }
+}

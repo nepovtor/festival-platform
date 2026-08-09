@@ -3,12 +3,10 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { cache, type CSSProperties } from "react";
 import { CookieConsent } from "@/components/cookie-consent";
-import { FestivalFactIcon } from "@/components/festival-fact-icon";
 import { FestivalMotion } from "@/components/festival-motion";
 import { FestivalTrophyIcon } from "@/components/festival-trophy-icon";
 import { FestivalZoneIcon, festivalZoneIconNames } from "@/components/festival-zone-icon";
 import { RegistrationForm } from "@/components/registration-form";
-import { SiteHeader } from "@/components/site-header";
 import { SocialIcon } from "@/components/social-icon";
 import { TrackedCalendarLink } from "@/components/tracked-calendar-link";
 import { VisitRules } from "@/components/visit-rules";
@@ -23,39 +21,6 @@ import { buildFestivalCalendarUrl } from "@/lib/festival-calendar";
 export const dynamic = "force-dynamic";
 
 const loadSiteContent = cache(getSiteContent);
-
-const artistPosterItems = [
-  {
-    className: "artist-poster-police",
-    name: "Police in Paris",
-    src: "/images/artists/police-in-paris.jpg",
-  },
-  {
-    className: "artist-poster-parade",
-    name: "Parade of Planets",
-    src: "/images/artists/parade-of-planets.jpg",
-  },
-  {
-    className: "artist-poster-hurakan",
-    name: "Кавер-группа «Хуракан»",
-    src: "/images/artists/hurakan-real.webp",
-  },
-  {
-    className: "artist-poster-wasssup",
-    name: "WASSSUP",
-    src: "/images/artists/wasssup.jpg",
-  },
-  {
-    className: "artist-poster-dj",
-    name: "DJ Antono Kostritsky",
-    src: "/images/artists/dj-antono-kostritsky.jpg",
-  },
-  {
-    className: "artist-poster-trakt",
-    name: "Борисовский тракт",
-    src: "/images/artists/borisovskiy-trakt.jpg",
-  },
-] as const;
 
 function compactDate(value: string) {
   return value.replace(/\s+\d{4}\s*$/u, "").trim();
@@ -115,210 +80,61 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Home() {
   const content = await loadSiteContent();
-  const { festival, gallery, heroImage, program, programImage } = content;
+  const { festival, heroImage, program } = content;
   const dateShort = compactDate(festival.date);
   const placeShort = compactPlace(festival.place);
   const addressShort = compactAddress(festival.address);
   const city = festival.address.split(",")[0]?.trim() || "Минск";
-  const featureImage = gallery.at(-1);
 
   return (
     <>
       <a className="skip-link" href="#main-content">
         Перейти к содержимому
       </a>
-      <SiteHeader />
-
       <main className="festival-2026" id="main-content">
         <FestivalMotion />
 
-        <section className="festival-hero" id="top" aria-labelledby="hero-title">
+        <section
+          className="festival-poster-stage"
+          id="top"
+          aria-labelledby="festival-poster-title"
+        >
+          <h1 className="festival-poster-accessible-title" id="festival-poster-title">
+            Грибной фестиваль Lay’s
+          </h1>
           <Image
-            alt=""
-            aria-hidden="true"
-            className="festival-hero-background"
-            fill
+            alt="Афиша грибного фестиваля Lay’s: 6 августа, стадион «Динамо», вход бесплатный"
+            className="festival-poster-image"
+            height={1411}
             priority
             sizes="100vw"
-            src="/images/hero-festival.webp"
+            src="/images/festival-poster-reference-v2.png"
+            width={1114}
           />
-          <div className="festival-hero-shade" aria-hidden="true" />
-          <div
-            className="festival-note festival-note-one"
-            aria-hidden="true"
-            data-parallax
-            data-parallax-speed="18"
-          >
-            ♪
-          </div>
-          <div
-            className="festival-note festival-note-two"
-            aria-hidden="true"
-            data-parallax
-            data-parallax-speed="-12"
-          >
-            ♫
-          </div>
 
-          <div className="festival-shell festival-hero-inner">
-            <div className="festival-hero-copy" data-hero-entrance>
-              <p className="festival-eyebrow">Возвращение того самого вкуса</p>
-              <div className="festival-hero-brand">
-                <Image
-                  alt="Lay’s"
-                  className="festival-hero-logo"
-                  height={190}
-                  src="/images/lays-logo-pack-cutout.webp"
-                  width={190}
-                />
-                <span>представляет</span>
-              </div>
-              <h1 id="hero-title">
-                Грибной
-                <span>фестиваль</span>
-              </h1>
-              <p className="festival-hero-lead">{festival.description}</p>
-              <a className="festival-primary-button" href="#registration">
-                Зарегистрироваться <span aria-hidden="true">↘</span>
-              </a>
-            </div>
+          <span className="festival-poster-anchor festival-poster-about-anchor" id="about" />
+          <span className="festival-poster-anchor festival-poster-artists-anchor" id="artists" />
 
-            <div className="festival-hero-product" aria-hidden="true">
-              <span className="festival-product-rings" />
-              <Image
-                alt=""
-                className="festival-product-pack festival-floating-pack"
-                height={768}
-                priority
-                sizes="(max-width: 720px) 72vw, (max-width: 1100px) 45vw, 490px"
-                src={heroImage}
-                width={577}
-              />
-              <span className="festival-return-label">
-                <strong>Он вернулся!</strong>
-                <small>тот самый вкус</small>
-              </span>
-            </div>
-          </div>
-
-          <dl className="festival-hero-facts" aria-label="Информация о фестивале">
-            <div>
-              <dt aria-label="Дата"><FestivalFactIcon name="calendar" /></dt>
-              <dd>{dateShort}</dd>
-            </div>
-            <div>
-              <dt aria-label="Время"><FestivalFactIcon name="clock" /></dt>
-              <dd>{festival.time}</dd>
-            </div>
-            <div className="festival-hero-location">
-              <dt aria-label="Место"><FestivalFactIcon name="pin" /></dt>
-              <dd>{placeShort}, {addressShort}</dd>
-            </div>
-            <div className="festival-hero-admission">
-              <dt>{campaignFestival.age}</dt>
-              <dd>{campaignFestival.admission}</dd>
-            </div>
-          </dl>
-        </section>
-
-        <section className="festival-about festival-section" id="about" aria-labelledby="about-title">
-          <div className="festival-shell">
-            <div className="festival-about-grid">
-              <div className="festival-about-copy" data-reveal>
-                <p className="festival-section-index">01 / О фестивале</p>
-                <h2 id="about-title">Главное грибное событие этого лета</h2>
-                <p className="festival-about-intro">{festival.about}</p>
-                <p>
-                  Здесь встречаются любимый вкус, музыка, развлечения и атмосфера
-                  яркого летнего отдыха. Приходите всей семьёй — вход свободный.
-                </p>
-                <div className="festival-about-location">
-                  <span aria-hidden="true">●</span>
-                  <p>
-                    <strong>{placeShort}</strong>
-                    {addressShort}
-                  </p>
-                </div>
-              </div>
-
-              <div className="festival-about-visual" data-reveal data-parallax data-parallax-speed="9">
-                <Image
-                  alt="Площадка грибного фестиваля Lay’s"
-                  className="festival-about-still-life"
-                  fill
-                  sizes="(max-width: 820px) 100vw, 50vw"
-                  src={programImage}
-                />
-                <div className="festival-about-product" aria-hidden="true">
-                  <Image
-                    alt=""
-                    className="festival-floating-pack"
-                    height={768}
-                    sizes="(max-width: 560px) 62vw, 340px"
-                    src={heroImage}
-                    width={577}
-                  />
-                </div>
-                <span className="festival-about-badge">Снова<br />с нами</span>
-              </div>
-            </div>
-
-            <div className="festival-feature-grid" aria-label="Главное о фестивале">
-              {festival.features.map((feature, index) => (
-                <article data-reveal key={`${feature.title}-${index}`} style={revealStyle(index)}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
-                  <h3>{feature.title}</h3>
-                  <p>{feature.description}</p>
-                </article>
-              ))}
-              {featureImage && (
-                <figure className="festival-feature-photo" data-reveal>
-                  <Image
-                    alt={featureImage.alt}
-                    fill
-                    sizes="(max-width: 820px) 100vw, 1296px"
-                    src={featureImage.src}
-                    style={{ objectPosition: featureImage.position }}
-                  />
-                  <figcaption>
-                    <strong>{dateShort}, {festival.time}</strong>
-                    <span>{campaignFestival.age} · {campaignFestival.admission}</span>
-                  </figcaption>
-                </figure>
-              )}
-            </div>
-
-          </div>
-        </section>
-
-        <section className="festival-artists festival-section" id="artists" aria-labelledby="artists-title">
-          <div className="festival-shell">
-            <header className="festival-heading festival-heading-centered" data-reveal>
-              <p className="festival-section-index">02 / Артисты</p>
-              <div className="festival-heading-rule" aria-hidden="true" />
-              <h2 id="artists-title">Тот самый вкус, та самая музыка</h2>
-              <div className="festival-heading-rule" aria-hidden="true" />
-            </header>
-
-            <div className="festival-artist-poster" data-reveal aria-label="Артисты фестиваля">
-              {artistPosterItems.map((artist, index) => (
-                <article className={`artist-poster-item ${artist.className}`} key={artist.name} style={revealStyle(index)}>
-                  <div className="artist-poster-photo">
-                    <Image
-                      alt={artist.name}
-                      fill
-                      sizes="(max-width: 700px) 46vw, 170px"
-                      src={artist.src}
-                    />
-                  </div>
-                  <h3>{artist.name}</h3>
-                </article>
-              ))}
-            </div>
-          </div>
-          <div className="festival-music-ribbon" aria-hidden="true">
-            <span>МУЗЫКА • ЛЕТО • ТОТ САМЫЙ ВКУС • МУЗЫКА • ЛЕТО • ТОТ САМЫЙ ВКУС •</span>
-          </div>
+          <nav className="festival-poster-hotspots" aria-label="Навигация по афише">
+            <a className="poster-hotspot poster-hotspot-about" href="#about">
+              <span>О фестивале</span>
+            </a>
+            <a className="poster-hotspot poster-hotspot-artists" href="#artists">
+              <span>Артисты</span>
+            </a>
+            <a className="poster-hotspot poster-hotspot-zones" href="#zones">
+              <span>Развлечения</span>
+            </a>
+            <a className="poster-hotspot poster-hotspot-program" href="#program">
+              <span>Программа</span>
+            </a>
+            <a className="poster-hotspot poster-hotspot-top-register" href="#registration">
+              <span>Зарегистрироваться</span>
+            </a>
+            <a className="poster-hotspot poster-hotspot-main-register" href="#registration">
+              <span>Зарегистрироваться</span>
+            </a>
+          </nav>
         </section>
 
         <section className="festival-zones festival-section" id="zones" aria-labelledby="zones-title">
