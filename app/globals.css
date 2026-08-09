@@ -2730,7 +2730,7 @@ body {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   align-items: start;
-  gap: 28px;
+  gap: 34px 30px;
   list-style: none;
 }
 
@@ -2745,8 +2745,8 @@ body {
 
 .visit-rule-icon {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 142px;
+  height: 142px;
   display: grid;
   place-items: center;
   overflow: visible;
@@ -3084,7 +3084,7 @@ body {
     gap: 34px 26px;
   }
   .visit-rules-list li { grid-template-rows: 132px auto; }
-  .visit-rule-icon { width: 130px; height: 130px; }
+  .visit-rule-icon { width: 134px; height: 134px; }
   .visit-rules-list p { font-size: 0.94rem; }
   .festival-footer-inner { grid-template-columns: auto 1fr; }
   .festival-footer-facts { grid-column: 1 / -1; text-align: left; }
@@ -3224,8 +3224,8 @@ body {
     grid-template-rows: 122px auto;
   }
   .visit-rule-icon {
-    width: 120px;
-    height: 120px;
+    width: 128px;
+    height: 128px;
   }
   .visit-rules-list p {
     margin-top: 8px;
