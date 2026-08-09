@@ -129,12 +129,12 @@ export default async function Home() {
 
         <section className="festival-code-hero" id="top" aria-labelledby="festival-hero-title">
           <Image
-            alt="Арки у стадиона «Динамо»"
+            alt="Арки у стадиона «Динамо» с жёлтыми флагами Lay’s"
             className="festival-code-hero-background"
             fill
             priority
             sizes="100vw"
-            src="/images/dinamo-arches-hero.png"
+            src="/images/dinamo-arches-flags-hero.png"
           />
           <div className="festival-code-hero-shade" aria-hidden="true" />
 
