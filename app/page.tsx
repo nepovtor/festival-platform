@@ -303,12 +303,14 @@ export default async function Home() {
             <div className="festival-artist-poster" data-reveal aria-label="Артисты фестиваля">
               {artistPosterItems.map((artist, index) => (
                 <article className={`artist-poster-item ${artist.className}`} key={artist.name} style={revealStyle(index)}>
-                  <Image
-                    alt={artist.name}
-                    fill
-                    sizes="(max-width: 700px) 74vw, 390px"
-                    src={artist.src}
-                  />
+                  <div className="artist-poster-photo">
+                    <Image
+                      alt={artist.name}
+                      fill
+                      sizes="(max-width: 700px) 46vw, 170px"
+                      src={artist.src}
+                    />
+                  </div>
                   <h3>{artist.name}</h3>
                 </article>
               ))}
